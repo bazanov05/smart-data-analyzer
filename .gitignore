@@ -1,0 +1,6 @@
+.venv/
+test_*.py
+temp_*.py
+*.csv
+research/
+__pycache__/
