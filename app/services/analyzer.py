@@ -24,3 +24,16 @@ class AML_System:
     def aggregate_geographic_inflow(self):
         country_exposure_report = self._df.groupby("country").amount.sum()
         return country_exposure_report.sort_values(ascending=False)
+
+    def detect_high_velocity_transfers(self):
+        self._df.timestamp = pd.to_datetime(self._df.timestamp)
+        sorted_df = self._df.sort_values(by="timestamp")
+
+        #  we want to check the high velocity based on last 3 transactions
+        #  so that is why we shift 2 rows down to compare the 1st one and the 3rd one
+        shifted_timestamps = sorted_df.groupby(sorted_df.sender_id)["timestamp"].shift(2)
+
+        #  now i create new col as a result of substracion
+        sorted_df['time_gap'] = sorted_df['timestamp'] - shifted_timestamps
+
+        return sorted_df.loc[sorted_df['time_gap'] <= pd.Timedelta(hours=1)]
