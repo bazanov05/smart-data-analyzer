@@ -21,9 +21,12 @@ async def upload_a_csv_file(file: UploadFile = File(...)):
     structuring_attemps = aml.detect_structuring_attempts().fillna("None").to_dict(orient='records')
     unverified_originators = aml.identify_unverified_originators().fillna("None").to_dict(orient='records')
     geografical_inflow = aml.aggregate_geographic_inflow().to_dict()
+    high_velocity = aml.detect_high_velocity_transfers().astype(str).to_dict(orient='records')
+
     result = {
-        "structuring_attemps": structuring_attemps,
+        "structuring_attempts": structuring_attemps,
         "unverified_originators": unverified_originators,
-        "geografical_inflow": geografical_inflow
+        "geographical_inflow": geografical_inflow,
+        "high_velocity_transfers": high_velocity
     }
     return result
