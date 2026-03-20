@@ -15,17 +15,31 @@ class AML_System:
         self._buffer = buffer
 
     def detect_structuring_attempts(self):
+        """
+        Finds structured transfers
+        in range between limit and limit - buffer
+        """
         return self._df.loc[((self._df.amount >= self._target_limit - self._buffer) & (self._df.amount < self._target_limit))]
 
     def identify_unverified_originators(self):
+        """
+        Finds senders without id
+        """
         anonymous_mask = self._df.isnull()
         return self._df.loc[anonymous_mask.sender_id]
 
     def aggregate_geographic_inflow(self):
+        """
+        Finds coutries with the biggest inflows
+        """
         country_exposure_report = self._df.groupby("country").amount.sum()
         return country_exposure_report.sort_values(ascending=False)
 
     def detect_high_velocity_transfers(self):
+        """
+        Finds transactions with a high velocity
+        based on one hour gap
+        """
         self._df.timestamp = pd.to_datetime(self._df.timestamp)
         sorted_df = self._df.sort_values(by="timestamp")
 
