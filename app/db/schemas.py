@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-class AmlReportCreate(BaseModel):
+class TransactionBase(BaseModel):
     transaction_id: str
     sender_id: str
     receiver_id: str
@@ -10,6 +10,23 @@ class AmlReportCreate(BaseModel):
     country: str
     type: str
     timestamp: datetime
+
+
+class StructuringAttemptCreate(TransactionBase):
+    pass
+
+
+class UnverifiedOriginatorCreate(TransactionBase):
+    sender_id: str | None = None
+
+
+class HighVelocityTransferCreate(TransactionBase):
+    timegap: str
+
+
+class GeographicalInflowCreate(BaseModel):
+    country: str
+    inflow: float
 
 
 class AmlReportResponse(BaseModel):
