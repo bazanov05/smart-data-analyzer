@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///./aml_database.db"
 
 
@@ -19,6 +20,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 #  basic class, AmlReport inherits from it to be registered that it exists
 Base = declarative_base()
+
+# imported here intentionally — Base must exist before AmlReport can inherit from it
+# so our base.metadata can register our class
+import app.db.models
 
 
 def get_db():
