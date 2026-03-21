@@ -1,4 +1,4 @@
-from db.models import AmlReport
+from app.db.models import AmlReport
 from sqlalchemy.orm import Session
 
 
