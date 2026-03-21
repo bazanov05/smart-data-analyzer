@@ -7,6 +7,10 @@ class AML_System:
 
     def __init__(self, transaction_ledger: pd.DataFrame, target_limit=10000, buffer=1000):
         self._df = transaction_ledger
+
+        # convert to pandas TimeStamp
+        self._df["timestamp"] = pd.to_datetime(self._df["timestamp"])
+
         if not self._is_value_positive(target_limit) or not self._is_value_positive(buffer):
             raise ValueError("Limits and buffer should be positive values")
         if buffer >= target_limit:
@@ -40,7 +44,6 @@ class AML_System:
         Finds transactions with a high velocity
         based on one hour gap
         """
-        self._df["timestamp"] = pd.to_datetime(self._df["timestamp"])
         sorted_df = self._df.sort_values(by="timestamp")
 
         #  we want to check the high velocity based on last 3 transactions
@@ -49,5 +52,5 @@ class AML_System:
 
         #  now i create new col as a result of substracion
         sorted_df['time_gap'] = sorted_df['timestamp'] - shifted_timestamps
-
-        return sorted_df.loc[sorted_df['time_gap'] <= pd.Timedelta(hours=1)]
+        result = sorted_df.loc[sorted_df['time_gap'] <= pd.Timedelta(hours=1)]
+        return result
