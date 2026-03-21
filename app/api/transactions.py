@@ -2,8 +2,10 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 import pandas as pd
 from app.services.analyzer import AML_System
 from fastapi.concurrency import run_in_threadpool  # for pd.read_csv()
-from db.database import get_db
-from db.repository import create_report
+from app.db.database import get_db
+from app.db.repository import create_report, get_report_by_id
+from app.db.schemas import AmlReportResponse
+from sqlalchemy.orm import Session
 
 
 app = FastAPI()
@@ -26,10 +28,20 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
 
     aml = AML_System(df)
     structuring_attemps = aml.detect_structuring_attempts().fillna("None").to_dict(orient='records')
+    saved_reports = []
     for structuring_attempt in structuring_attemps:
-        create_report(db, structuring_attempt)
+        new_report = create_report(db, structuring_attempt)
+        saved_reports.append(new_report)
 
     result = {
-        "structuring_attempts": structuring_attemps
+        "structuring_attempts": saved_reports
     }
     return result
+
+
+@app.get("/reports/{report_id}", response_model=AmlReportResponse)
+def get_report(report_id: int, db: Session = Depends(get_db)):
+    report = get_report_by_id(db, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return report
