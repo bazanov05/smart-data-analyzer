@@ -9,6 +9,7 @@ class AmlReportCreate(BaseModel):
     amount: float
     country: str
     type: str
+    timestamp: datetime
 
 
 class AmlReportResponse(BaseModel):
@@ -23,5 +24,6 @@ class AmlReportResponse(BaseModel):
     amount: float
     country: str
     type: str
+    timestamp: datetime
     id: int
     created_at: datetime

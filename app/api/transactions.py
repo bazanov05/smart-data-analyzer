@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 
 app = FastAPI()
-REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type'}
+REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type', 'timestamp'}
 
 
 @app.post("/update")
@@ -27,14 +27,38 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=list(missing_cols))
 
     aml = AML_System(df)
+
     structuring_attemps = aml.detect_structuring_attempts().fillna("None").to_dict(orient='records')
-    saved_reports = []
+    unverified_originators = aml.identify_unverified_originators().fillna("Unverified").to_dict(orient="records")
+    geographic_inflows = aml.aggregate_geographic_inflow().to_dict()
+    high_velocity_transfers = aml.detect_high_velocity_transfers().to_dict(orient="records")
+
+    saved_struct_attempt_reports = []
     for structuring_attempt in structuring_attemps:
         new_report = create_report(db, structuring_attempt)
-        saved_reports.append(new_report)
+        saved_struct_attempt_reports.append(new_report)
+
+    saved_unver_org_reports = []
+    for unverified_originator in unverified_originators:
+        new_report = create_report(db, unverified_originator)
+        saved_unver_org_reports.append(new_report)
+
+    saved_geo_inflow_reports = []
+    for geographic_inflow in geographic_inflows:
+        new_report = create_report(db, geographic_inflow)
+        saved_geo_inflow_reports.append(new_report)
+
+    saved_velocity_transfers_reports = []
+    for high_velocity_transfer in high_velocity_transfers:
+        new_report = create_report(db, high_velocity_transfer)
+        saved_velocity_transfers_reports.append(new_report)
 
     result = {
-        "structuring_attempts": saved_reports
+        "structuring_attempts": saved_struct_attempt_reports,
+        "unverified_originators": saved_unver_org_reports,
+        "geographi_inflows": saved_geo_inflow_reports,
+        "high_velocity_transfers": saved_velocity_transfers_reports
+
     }
     return result
 

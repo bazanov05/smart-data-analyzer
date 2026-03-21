@@ -40,7 +40,7 @@ class AML_System:
         Finds transactions with a high velocity
         based on one hour gap
         """
-        self._df.timestamp = pd.to_datetime(self._df.timestamp)
+        self._df["timestamp"] = pd.to_datetime(self._df["timestamp"])
         sorted_df = self._df.sort_values(by="timestamp")
 
         #  we want to check the high velocity based on last 3 transactions

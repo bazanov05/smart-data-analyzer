@@ -17,4 +17,5 @@ class AmlReport(Base):
     amount = Column(Numeric(10, 2), nullable=False)  # 10 digits total, 2 after the point
     country = Column(String, nullable=False, index=True)  # db will reject Null countries
     type = Column(String, nullable=False)
+    timestamp = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=func.now())  # to get the time of report by getting the time of uploading on server
