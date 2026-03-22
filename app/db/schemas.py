@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-class TransactionBase(BaseModel):
+class CreateBase(BaseModel):
     transaction_id: str
     sender_id: str
     receiver_id: str
@@ -12,15 +12,15 @@ class TransactionBase(BaseModel):
     timestamp: datetime
 
 
-class StructuringAttemptCreate(TransactionBase):
+class StructuringAttemptCreate(CreateBase):
     pass
 
 
-class UnverifiedOriginatorCreate(TransactionBase):
+class UnverifiedOriginatorCreate(CreateBase):
     sender_id: str | None = None
 
 
-class HighVelocityTransferCreate(TransactionBase):
+class HighVelocityTransferCreate(CreateBase):
     timegap: str
 
 
@@ -29,10 +29,10 @@ class GeographicalInflowCreate(BaseModel):
     inflow: float
 
 
-class AmlReportResponse(BaseModel):
+class ResponseBase(BaseModel):
 
-    # Pydantic reads dicts by default, but SQLAlchemy objects use attributes not keys
-    # from_attributes=True switches Pydantic to read via getattr() instead of dict access
+    # SQLite does not return dicts, but objects
+    # so we need to take values from attributes, not dicts
     model_config = ConfigDict(from_attributes=True)
 
     transaction_id: str
@@ -42,5 +42,27 @@ class AmlReportResponse(BaseModel):
     country: str
     type: str
     timestamp: datetime
+    id: int
+    created_at: datetime
+
+
+class StructuringAttemptResponse(ResponseBase):
+    pass
+
+
+class UnverifiedOriginatorResponse(ResponseBase):
+    sender_id: str | None = None
+
+
+class HighVelocityTransferResponse(ResponseBase):
+    timegap: str
+
+
+class GeographicalInflowResponse(BaseModel):
+
+    model_config = ConfigDict(from_attributes=True)
+
+    country: str
+    inflow: float
     id: int
     created_at: datetime
