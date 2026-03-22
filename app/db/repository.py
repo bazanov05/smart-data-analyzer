@@ -59,3 +59,19 @@ def create_geographical_inflow_report(db: Session, data: dict) -> GeographicalIn
     except Exception as e:
         db.rollback()
         raise e
+
+
+def get_structuring_attempt_report_by_id(db: Session, report_id: int):
+    return db.query(StructuringAttempt).filter(StructuringAttempt.id == report_id).first()
+
+
+def get_unverified_originator_report_by_id(db: Session, report_id: int):
+    return db.query(UnverifiedOriginator).filter(UnverifiedOriginator.id == report_id).first()
+
+
+def get_high_velocity_transfer_report_by_id(db: Session, report_id: int):
+    return db.query(HighVelocityTransfer).filter(HighVelocityTransfer.id == report_id).first()
+
+
+def get_geographical_inflow_report_by_id(db: Session, report_id: int):
+    return db.query(GeographicalInflow).filter(GeographicalInflow.id == report_id).first()
