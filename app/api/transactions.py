@@ -28,7 +28,9 @@ REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'cou
 
 def _save_report_with_timestamp(func_to_create, db, reports: list):
     """
-    Saves reports with timestamp in db
+    Recieves a func as a first argument, which makes it reusable
+    Converts Pandas Timestamp to Python datetime before saving — SQLite rejects Pandas types
+    Returns a list of saved database objects with generated id and created_at
     """
     saved = []
     for report in reports:
@@ -43,11 +45,15 @@ def _save_report_with_timestamp(func_to_create, db, reports: list):
 
 @app.post("/update")
 async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
+    """
+    Accepts a CSV file, runs all four AML analyses and saves results to the database.
+    Validates file type and required columns before processing.
+    Returns all four saved report sets as a JSON response.
+    """
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=415, detail="Unsupported media type")  # program supports only csv files
 
-    #  pandas is inawaitable so i use run_in_threadpool
-    #  API will not be blocked
+    #  pandas is not async so run_in_threadpool prevents blocking the entire API
     df = await run_in_threadpool(pd.read_csv, file.file)
 
     cols_in_df = set(df.columns)
@@ -68,6 +74,9 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
 
     saved_velocity_transfers_reports = _save_report_with_timestamp(create_high_velocity_transfer_report, db, high_velocity_transfers)
 
+    #  geographical inflow has different shape — no transaction details, just country and total amount
+    #  so it cannot go through _save_report_with_timestamp
+
     saved_geo_inflow_reports = []
     for country, inflow in geographic_inflows.items():
         new_report = create_geographical_inflow_report(db, {"country": country, "inflow": float(inflow)})
@@ -85,6 +94,10 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
 
 @app.get("/reports/structuring_attempt/{report_id}", response_model=StructuringAttemptResponse)
 def get_structuring_attempt(report_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches a single structuring attempt report by its internal database id.
+    Returns 404 if no report with the given id exists.
+    """
     report = get_structuring_attempt_report_by_id(db, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
@@ -93,6 +106,10 @@ def get_structuring_attempt(report_id: int, db: Session = Depends(get_db)):
 
 @app.get("/reports/unverified_originator/{report_id}", response_model=UnverifiedOriginatorResponse)
 def get_unverified_originator(report_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches a single unverified originator report by its internal database id.
+    Returns 404 if no report with the given id exists.
+    """
     report = get_unverified_originator_report_by_id(db, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
@@ -101,6 +118,10 @@ def get_unverified_originator(report_id: int, db: Session = Depends(get_db)):
 
 @app.get("/reports/geographical_inflow/{report_id}", response_model=GeographicalInflowResponse)
 def get_geographical_inflow(report_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches a single geographical inflow report by its internal database id.
+    Returns 404 if no report with the given id exists.
+    """
     report = get_geographical_inflow_report_by_id(db, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
@@ -109,6 +130,10 @@ def get_geographical_inflow(report_id: int, db: Session = Depends(get_db)):
 
 @app.get("/reports/high_velocity_transfer/{report_id}", response_model=HighVelocityTransferResponse)
 def get_high_velocity_transfer(report_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches a single high velocity transfer report by its internal database id.
+    Returns 404 if no report with the given id exists.
+    """
     report = get_high_velocity_transfer_report_by_id(db, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
