@@ -3,13 +3,17 @@ import pandas as pd
 from app.services.analyzer import AML_System
 from fastapi.concurrency import run_in_threadpool  # for pd.read_csv()
 from app.db.database import get_db
-from app.db.repository import(
+from app.db.repository import (
     get_structuring_attempt_report_by_id,
     get_geographical_inflow_report_by_id,
     get_high_velocity_transfer_report_by_id,
-    get_unverified_originator_report_by_id
+    get_unverified_originator_report_by_id,
+    create_geographical_inflow_report,
+    create_high_velocity_transfer_report,
+    create_structuring_attempt_report,
+    create_unverified_originator_report
 )
-from app.db.schemas import(
+from app.db.schemas import (
     StructuringAttemptResponse,
     UnverifiedOriginatorResponse,
     GeographicalInflowResponse,
@@ -22,15 +26,17 @@ app = FastAPI()
 REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type', 'timestamp'}
 
 
-def _save_report_with_timestamp(db, reports: list):
+def _save_report_with_timestamp(func_to_create, db, reports: list):
     """
     Saves reports with timestamp in db
     """
     saved = []
     for report in reports:
         if "timestamp" in report:
+            if "timegap" in report:
+                report["timegap"] = str(report["timegap"])
             report["timestamp"] = report['timestamp'].to_pydatetime()
-            new_report = create_report(db, report)
+            new_report = func_to_create(db, report)
             saved.append(new_report)
     return saved
 
@@ -56,16 +62,21 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     geographic_inflows = aml.aggregate_geographic_inflow().to_dict()
     high_velocity_transfers = aml.detect_high_velocity_transfers().to_dict(orient="records")
 
-    saved_struct_attempt_reports = _save_report_with_timestamp(db, structuring_attemps)
+    saved_struct_attempt_reports = _save_report_with_timestamp(create_structuring_attempt_report, db, structuring_attemps)
 
-    saved_unver_org_reports = _save_report_with_timestamp(db, unverified_originators)
+    saved_unver_org_reports = _save_report_with_timestamp(create_unverified_originator_report, db, unverified_originators)
 
-    saved_velocity_transfers_reports = _save_report_with_timestamp(db, high_velocity_transfers)
+    saved_velocity_transfers_reports = _save_report_with_timestamp(create_high_velocity_transfer_report, db, high_velocity_transfers)
+
+    saved_geo_inflow_reports = []
+    for country, inflow in geographic_inflows.items():
+        new_report = create_geographical_inflow_report(db, {"country": country, "inflow": float(inflow)})
+        saved_geo_inflow_reports.append(new_report)
 
     result = {
         "structuring_attempts": saved_struct_attempt_reports,
         "unverified_originators": saved_unver_org_reports,
-        "geographi_inflows": geographic_inflows,
+        "geographical_inflows": saved_geo_inflow_reports,
         "high_velocity_transfers": saved_velocity_transfers_reports
 
     }
