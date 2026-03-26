@@ -21,7 +21,7 @@ class UnverifiedOriginatorCreate(CreateBase):
 
 
 class HighVelocityTransferCreate(CreateBase):
-    timegap: str
+    time_gap: str
 
 
 class GeographicalInflowCreate(BaseModel):
@@ -55,7 +55,7 @@ class UnverifiedOriginatorResponse(ResponseBase):
 
 
 class HighVelocityTransferResponse(ResponseBase):
-    timegap: str
+    time_gap: str
 
 
 class GeographicalInflowResponse(BaseModel):

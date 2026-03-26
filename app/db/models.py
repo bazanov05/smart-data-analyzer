@@ -46,7 +46,7 @@ class HighVelocityTransfer(Base):
     country = Column(String, nullable=False, index=True)
     type = Column(String, nullable=False)
     timestamp = Column(DateTime, nullable=False)
-    timegap = Column(String, nullable=False)
+    time_gap = Column(String, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
 
