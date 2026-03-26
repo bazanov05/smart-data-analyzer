@@ -81,13 +81,17 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     for country, inflow in geographic_inflows.items():
         new_report = create_geographical_inflow_report(db, {"country": country, "inflow": float(inflow)})
         saved_geo_inflow_reports.append(new_report)
-
     result = {
-        "structuring_attempts": saved_struct_attempt_reports,
-        "unverified_originators": saved_unver_org_reports,
+        "structuring_attempts": [
+            StructuringAttemptResponse.model_validate(r).model_dump() for r in saved_struct_attempt_reports
+        ],
+        "unverified_originators": [
+           UnverifiedOriginatorResponse.model_validate(r).model_dump() for r in saved_unver_org_reports
+        ],
         "geographical_inflows": saved_geo_inflow_reports,
-        "high_velocity_transfers": saved_velocity_transfers_reports
-
+        "high_velocity_transfers": [
+            HighVelocityTransferResponse.model_validate(r).model_dump() for r in saved_velocity_transfers_reports
+        ]
     }
     return result
 
