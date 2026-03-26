@@ -53,4 +53,5 @@ class AML_System:
         #  now i create new col as a result of substracion
         sorted_df['time_gap'] = sorted_df['timestamp'] - shifted_timestamps
         result = sorted_df.loc[sorted_df['time_gap'] <= pd.Timedelta(hours=1)]
+        result['time_gap'] = result['time_gap'].astype(str)
         return result
