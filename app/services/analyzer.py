@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import timedelta
 
 
 class AML_System:
@@ -18,12 +19,32 @@ class AML_System:
         self._target_limit = target_limit
         self._buffer = buffer
 
-    def detect_structuring_attempts(self):
+    def detect_structuring_attempts(self, time_window: timedelta):
         """
-        Finds structured transfers
-        in range between limit and limit - buffer
+        Identifies potential structuring by calculating rolling cumulative transaction
+        amounts per sender within a specific time window.
         """
-        return self._df.loc[((self._df.amount >= self._target_limit - self._buffer) & (self._df.amount < self._target_limit))]
+
+        # Pandas operates only with sorted time with rollnig()
+        sorted_df = self._df.sort_values(by="timestamp")
+
+        grouped = sorted_df.groupby("sender_id")
+
+        # for every transaction pandas goes back for our time_widnow
+        # and summarise the amount of money for this period of time
+        # for new row oldest trans gets dropped and the new one is added for each sender
+        rolling_sum = grouped.rolling(window=time_window, on="timestamp")['amount'].sum()
+
+        # The groupby operation creates a MultiIndex (sender_id, row_index).
+        # to add a new Series we need to drop the first part of address
+        sorted_df['summed_amount'] = rolling_sum.reset_index(level=0, drop=True)
+
+        # Filter for cases where the cumulative total falls within the suspicious buffer
+        # range just below the reporting limit.
+        return sorted_df.loc[
+            (sorted_df["summed_amount"] < self._target_limit) &
+            (sorted_df["summed_amount"] >= self._target_limit - self._buffer)
+        ]
 
     def identify_unverified_originators(self):
         """
