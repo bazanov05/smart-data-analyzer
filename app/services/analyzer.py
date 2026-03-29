@@ -80,19 +80,21 @@ class AML_System:
 
         return report
 
-    def detect_high_velocity_transfers(self):
+    def detect_high_velocity_transfers(self, time_window: timedelta, frequency_limit: int):
         """
-        Finds transactions with a high velocity
-        based on one hour gap
+        Identifies senders performing an unusually high
+        number of transactions within a rolling time window
         """
+        # Pandas operates only with sorted time with rollnig()
         sorted_df = self._df.sort_values(by="timestamp")
+        grouped_df = sorted_df.groupby("sender_id")
 
-        #  we want to check the high velocity based on last 3 transactions
-        #  so that is why we shift 2 rows down to compare the 1st one and the 3rd one
-        shifted_timestamps = sorted_df.groupby(sorted_df.sender_id)["timestamp"].shift(2)
+        # Count the number of transactions for each sender within the sliding time window.
+        # As the window moves, transactions older than 'time_window' are excluded from the count.
+        rolling_count = grouped_df.rolling(window=time_window, on='timestamp')['sender_id'].count()
 
-        #  now i create new col as a result of substracion
-        sorted_df['time_gap'] = sorted_df['timestamp'] - shifted_timestamps
-        result = sorted_df.loc[sorted_df['time_gap'] <= pd.Timedelta(hours=1)]
-        result['time_gap'] = result['time_gap'].astype(str)
-        return result
+        # Groupby.rolling returns a MultiIndex (sender_id, row_index).
+        # Dropping the sender_id level (level 0) aligns the Series back to the original row index.
+        sorted_df['frequency'] = rolling_count.reset_index(level=0, drop=True)
+
+        return sorted_df.loc[sorted_df['frequency'] >= frequency_limit]
