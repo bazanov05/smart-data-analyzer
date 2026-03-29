@@ -1,5 +1,8 @@
 import pandas as pd
 from datetime import timedelta
+import numpy as np
+
+HIGH_RISK = {'IR', 'KP', 'SY', 'RU', 'BLR'}
 
 
 class AML_System:
@@ -62,10 +65,20 @@ class AML_System:
 
     def aggregate_geographic_inflow(self):
         """
-        Finds coutries with the biggest inflows
+        Sums total transaction amounts per country
+        and flags high-risk jurisdictions.
         """
-        country_exposure_report = self._df.groupby("country").amount.sum()
-        return country_exposure_report.sort_values(ascending=False)
+        # Sum amounts by country and convert the resulting Series to a DataFrame
+        report = self._df.groupby("country")["amount"].sum().reset_index()
+
+        # Vectorized check: if country is in HIGH_RISK, label as High-risk, else Low-risk
+        report["risk_level"] = np.where(
+            report['country'].isin(HIGH_RISK),
+            "High-risk",
+            "Low-risk"
+        )
+
+        return report
 
     def detect_high_velocity_transfers(self):
         """
