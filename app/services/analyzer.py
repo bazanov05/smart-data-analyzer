@@ -48,10 +48,17 @@ class AML_System:
 
     def identify_unverified_originators(self):
         """
-        Finds senders without id
+        Flags users with only one transaction in the system.
+        These are treated as 'unverified' because they have no history.
         """
-        anonymous_mask = self._df.isnull()
-        return self._df.loc[anonymous_mask.sender_id]
+        grouped_df = self._df.copy()
+
+        # use transfrom() instead of count() not to collapse data
+        # the result of count will be added to every row
+        # we want to save all transaction data not only sender_id
+        grouped_df['num_of_transactions'] = self._df.groupby("sender_id")["sender_id"].transform("count")
+
+        return grouped_df.loc[grouped_df['num_of_transactions'] == 1]
 
     def aggregate_geographic_inflow(self):
         """
