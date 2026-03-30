@@ -5,13 +5,15 @@ from app.db.models import (
     GeographicalInflow
 )
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 
 def create_structuring_attempt_report(db: Session, data: dict) -> StructuringAttempt:
     """
     Saves a structuring attempt to the database.
     Returns the saved object with generated id and created_at.
-    Rolls back and raises on commit failure.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
     """
     try:
         new_structuring_attempt_report = StructuringAttempt(**data)
@@ -19,6 +21,11 @@ def create_structuring_attempt_report(db: Session, data: dict) -> StructuringAtt
         db.commit()
         db.refresh(new_structuring_attempt_report)
         return new_structuring_attempt_report
+
+    # catching this error allows us to ignore the duplicates
+    except IntegrityError:
+        db.rollback()
+        return None
     except Exception as e:
         db.rollback()
         raise e
@@ -27,9 +34,9 @@ def create_structuring_attempt_report(db: Session, data: dict) -> StructuringAtt
 def create_unverified_originator_report(db: Session, data: dict) -> UnverifiedOriginator:
     """
     Saves an unverified originator transaction to the database.
-    sender_id may be None — that is expected for this report type.
     Returns the saved object with generated id and created_at.
-    Rolls back and raises on commit failure.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
     """
     try:
         new_unverified_originator_report = UnverifiedOriginator(**data)
@@ -37,6 +44,9 @@ def create_unverified_originator_report(db: Session, data: dict) -> UnverifiedOr
         db.commit()
         db.refresh(new_unverified_originator_report)
         return new_unverified_originator_report
+    except IntegrityError:
+        db.rollback()
+        return None
     except Exception as e:
         db.rollback()
         raise e
@@ -47,7 +57,8 @@ def create_high_velocity_transfer_report(db: Session, data: dict) -> HighVelocit
     Saves a high velocity transfer to the database.
     Expects timegap field in data representing time between transactions.
     Returns the saved object with generated id and created_at.
-    Rolls back and raises on commit failure.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
     """
     try:
         new_high_velocity_transfer_report = HighVelocityTransfer(**data)
@@ -55,6 +66,9 @@ def create_high_velocity_transfer_report(db: Session, data: dict) -> HighVelocit
         db.commit()
         db.refresh(new_high_velocity_transfer_report)
         return new_high_velocity_transfer_report
+    except IntegrityError:
+        db.rollback()
+        return None
     except Exception as e:
         db.rollback()
         raise e
@@ -65,7 +79,8 @@ def create_geographical_inflow_report(db: Session, data: dict) -> GeographicalIn
     Saves a geographical inflow aggregation to the database.
     Expects only country and inflow fields — no transaction details.
     Returns the saved object with generated id and created_at.
-    Rolls back and raises on commit failure.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
     """
     try:
         new_geographical_inflow_report = GeographicalInflow(**data)
@@ -73,6 +88,9 @@ def create_geographical_inflow_report(db: Session, data: dict) -> GeographicalIn
         db.commit()
         db.refresh(new_geographical_inflow_report)
         return new_geographical_inflow_report
+    except IntegrityError:
+        db.rollback()
+        return None
     except Exception as e:
         db.rollback()
         raise e
