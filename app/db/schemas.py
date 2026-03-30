@@ -13,20 +13,22 @@ class CreateBase(BaseModel):
 
 
 class StructuringAttemptCreate(CreateBase):
-    pass
+    summed_amount: float
 
 
 class UnverifiedOriginatorCreate(CreateBase):
-    sender_id: str | None = None
+    num_of_transactions: int
 
 
 class HighVelocityTransferCreate(CreateBase):
     time_gap: str
+    frequency: int
 
 
 class GeographicalInflowCreate(BaseModel):
     country: str
     inflow: float
+    risk_level: str
 
 
 class ResponseBase(BaseModel):
@@ -47,15 +49,15 @@ class ResponseBase(BaseModel):
 
 
 class StructuringAttemptResponse(ResponseBase):
-    pass
+    summed_amount: float
 
 
 class UnverifiedOriginatorResponse(ResponseBase):
-    sender_id: str | None = None
+    num_of_transactions: int
 
 
 class HighVelocityTransferResponse(ResponseBase):
-    time_gap: str
+    frequency: int
 
 
 class GeographicalInflowResponse(BaseModel):
@@ -65,4 +67,5 @@ class GeographicalInflowResponse(BaseModel):
     country: str
     inflow: float
     id: int
+    risk_level: str
     created_at: datetime
