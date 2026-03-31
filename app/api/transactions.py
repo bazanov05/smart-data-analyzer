@@ -72,7 +72,7 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     raw_data = df.fillna("None").to_dict(orient="records")
     structuring_attemps = aml.detect_structuring_attempts(timedelta(hours=1)).fillna("None").to_dict(orient='records')
     unverified_originators = aml.identify_unverified_originators().fillna("Unverified").to_dict(orient="records")
-    geographic_inflows = aml.aggregate_geographic_inflow().to_dict()
+    geographic_inflows = aml.aggregate_geographic_inflow().to_dict(orient="records")
     high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 5).to_dict(orient="records")
 
     saved_struct_attempt_reports = _save_report_with_timestamp(create_structuring_attempt_report, db, structuring_attemps)
@@ -84,9 +84,11 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     # so it cannot go through _save_report_with_timestamp
 
     saved_geo_inflow_reports = []
-    for country, inflow in geographic_inflows.items():
-        new_report = create_geographical_inflow_report(db, {"country": country, "inflow": float(inflow)})
-        saved_geo_inflow_reports.append(new_report)
+    for data in geographic_inflows:
+        new_report = create_geographical_inflow_report(db, data)
+        if new_report is not None:
+            saved_geo_inflow_reports.append(new_report)
+
     result = {
         "Raw_data": [
             RawDataResponse.model_validate(r).model_dump() for r in saved_raw_data
