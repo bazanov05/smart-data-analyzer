@@ -11,15 +11,18 @@ from app.db.repository import (
     create_geographical_inflow_report,
     create_high_velocity_transfer_report,
     create_structuring_attempt_report,
-    create_unverified_originator_report
+    create_unverified_originator_report,
+    create_raw_data_report
 )
 from app.db.schemas import (
     StructuringAttemptResponse,
     UnverifiedOriginatorResponse,
     GeographicalInflowResponse,
-    HighVelocityTransferResponse
+    HighVelocityTransferResponse,
+    RawDataResponse
 )
 from sqlalchemy.orm import Session
+from datetime import timedelta
 
 
 app = FastAPI()
@@ -39,7 +42,8 @@ def _save_report_with_timestamp(func_to_create, db, reports: list):
                 report["timegap"] = str(report["timegap"])
             report["timestamp"] = report['timestamp'].to_pydatetime()
             new_report = func_to_create(db, report)
-            saved.append(new_report)
+            if new_report is not None:
+                saved.append(new_report)
     return saved
 
 
@@ -61,27 +65,32 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     if len(missing_cols) != 0:
         raise HTTPException(status_code=400, detail=list(missing_cols))
 
+    # convert to pandas TimeStamp
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
     aml = AML_System(df)
 
-    structuring_attemps = aml.detect_structuring_attempts().fillna("None").to_dict(orient='records')
+    raw_data = df.fillna("None").to_dict(orient="records")
+    structuring_attemps = aml.detect_structuring_attempts(timedelta(hours=1)).fillna("None").to_dict(orient='records')
     unverified_originators = aml.identify_unverified_originators().fillna("Unverified").to_dict(orient="records")
     geographic_inflows = aml.aggregate_geographic_inflow().to_dict()
-    high_velocity_transfers = aml.detect_high_velocity_transfers().to_dict(orient="records")
+    high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 5).to_dict(orient="records")
 
     saved_struct_attempt_reports = _save_report_with_timestamp(create_structuring_attempt_report, db, structuring_attemps)
-
     saved_unver_org_reports = _save_report_with_timestamp(create_unverified_originator_report, db, unverified_originators)
-
     saved_velocity_transfers_reports = _save_report_with_timestamp(create_high_velocity_transfer_report, db, high_velocity_transfers)
+    saved_raw_data = _save_report_with_timestamp(create_raw_data_report, db, raw_data)
 
-    #  geographical inflow has different shape — no transaction details, just country and total amount
-    #  so it cannot go through _save_report_with_timestamp
+    # geographical inflow has different shape — no transaction details, just country and total amount
+    # so it cannot go through _save_report_with_timestamp
 
     saved_geo_inflow_reports = []
     for country, inflow in geographic_inflows.items():
         new_report = create_geographical_inflow_report(db, {"country": country, "inflow": float(inflow)})
         saved_geo_inflow_reports.append(new_report)
     result = {
+        "Raw_data": [
+            RawDataResponse.model_validate(r).model_dump() for r in saved_raw_data
+        ],
         "structuring_attempts": [
             StructuringAttemptResponse.model_validate(r).model_dump() for r in saved_struct_attempt_reports
         ],
