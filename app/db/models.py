@@ -55,8 +55,23 @@ class HighVelocityTransfer(Base):
 
 class GeographicalInflow(Base):
     __tablename__ = "geographical_inflows"
+
     id = Column(Integer, primary_key=True)
     country = Column(String, nullable=False)
     inflow = Column(Numeric(10, 2), nullable=False)
     risk_level = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class RawData(Base):
+    __tablename__ = "raw_data"
+
+    id = Column(Integer, primary_key=True)
+    transaction_id = Column(String, nullable=False, unique=True)
+    sender_id = Column(String, index=True, nullable=False)
+    receiver_id = Column(String, nullable=False, index=True)
+    amount = Column(Numeric(10, 2), nullable=False)
+    country = Column(String, nullable=False, index=True)
+    type = Column(String, nullable=False)
+    timestamp = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=func.now())

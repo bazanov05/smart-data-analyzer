@@ -69,3 +69,11 @@ class GeographicalInflowResponse(BaseModel):
     id: int
     risk_level: str
     created_at: datetime
+
+
+class RawDataCreate(CreateBase):
+    pass
+
+
+class RawDataResponse(ResponseBase):
+    pass
