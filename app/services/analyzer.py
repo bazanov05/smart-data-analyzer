@@ -66,6 +66,7 @@ class AML_System:
         and flags high-risk jurisdictions.
         """
         # Sum amounts by country and convert the resulting Series to a DataFrame
+        # to keep 'country' as a column, not a key
         report = self._df.groupby("country")["amount"].sum().reset_index()
 
         # Vectorized check: if country is in HIGH_RISK, label as High-risk, else Low-risk
@@ -74,6 +75,9 @@ class AML_System:
             "High-risk",
             "Low-risk"
         )
+
+        # rename a column to match my DB/Schemas
+        report = report.rename(columns={'amount': 'inflow'})
 
         return report
 
@@ -88,8 +92,7 @@ class AML_System:
 
         # Count the number of transactions for each sender within the sliding time window.
         # As the window moves, transactions older than 'time_window' are excluded from the count.
-        rolling_count = grouped_df.rolling(window=time_window, on='timestamp')['sender_id'].count()
-
+        rolling_count = grouped_df.rolling(window=time_window, on='timestamp')['amount'].count()
         # Groupby.rolling returns a MultiIndex (sender_id, row_index).
         # Dropping the sender_id level (level 0) aligns the Series back to the original row index.
         sorted_df['frequency'] = rolling_count.reset_index(level=0, drop=True)
