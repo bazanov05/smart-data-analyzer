@@ -12,9 +12,6 @@ class AML_System:
     def __init__(self, transaction_ledger: pd.DataFrame, target_limit=10000, buffer=1000):
         self._df = transaction_ledger
 
-        # convert to pandas TimeStamp
-        self._df["timestamp"] = pd.to_datetime(self._df["timestamp"])
-
         if not self._is_value_positive(target_limit) or not self._is_value_positive(buffer):
             raise ValueError("Limits and buffer should be positive values")
         if buffer >= target_limit:
