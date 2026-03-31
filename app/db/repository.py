@@ -2,7 +2,8 @@ from app.db.models import (
     StructuringAttempt,
     UnverifiedOriginator,
     HighVelocityTransfer,
-    GeographicalInflow
+    GeographicalInflow,
+    RawData
 )
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -114,3 +115,24 @@ def get_high_velocity_transfer_report_by_id(db: Session, report_id: int):
 def get_geographical_inflow_report_by_id(db: Session, report_id: int):
     """Returns a geographical inflow report by id, or None if not found."""
     return db.query(GeographicalInflow).filter(GeographicalInflow.id == report_id).first()
+
+
+def create_raw_data_report(db: Session, data: dict) -> RawData:
+    """
+    Saves a raw data to the database.
+    Returns the saved object with generated id and created_at.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
+    """
+    try:
+        new_raw_data = RawData(**data)
+        db.add(new_raw_data)
+        db.commit()
+        db.refresh(new_raw_data)
+        return new_raw_data
+    except IntegrityError:
+        db.rollback()
+        return None
+    except Exception as e:
+        db.rollback()
+        raise e
