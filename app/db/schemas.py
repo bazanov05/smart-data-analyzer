@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-class CreateBase(BaseModel):
+class RawDataCreate(BaseModel):
     transaction_id: str
     sender_id: str
     receiver_id: str
@@ -12,15 +12,15 @@ class CreateBase(BaseModel):
     timestamp: datetime
 
 
-class StructuringAttemptCreate(CreateBase):
+class StructuringAttemptCreate(RawDataCreate):
     summed_amount: float
 
 
-class UnverifiedOriginatorCreate(CreateBase):
+class UnverifiedOriginatorCreate(RawDataCreate):
     num_of_transactions: int
 
 
-class HighVelocityTransferCreate(CreateBase):
+class HighVelocityTransferCreate(RawDataCreate):
     time_gap: str
     frequency: int
 
@@ -31,7 +31,7 @@ class GeographicalInflowCreate(BaseModel):
     risk_level: str
 
 
-class ResponseBase(BaseModel):
+class RawDataResponse(BaseModel):
 
     # SQLite does not return dicts, but objects
     # so we need to take values from attributes, not dicts
@@ -48,15 +48,15 @@ class ResponseBase(BaseModel):
     created_at: datetime
 
 
-class StructuringAttemptResponse(ResponseBase):
+class StructuringAttemptResponse(RawDataResponse):
     summed_amount: float
 
 
-class UnverifiedOriginatorResponse(ResponseBase):
+class UnverifiedOriginatorResponse(RawDataResponse):
     num_of_transactions: int
 
 
-class HighVelocityTransferResponse(ResponseBase):
+class HighVelocityTransferResponse(RawDataResponse):
     frequency: int
 
 
@@ -69,11 +69,3 @@ class GeographicalInflowResponse(BaseModel):
     id: int
     risk_level: str
     created_at: datetime
-
-
-class RawDataCreate(CreateBase):
-    pass
-
-
-class RawDataResponse(ResponseBase):
-    pass
