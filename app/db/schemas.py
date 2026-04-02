@@ -69,3 +69,18 @@ class GeographicalInflowResponse(BaseModel):
     id: int
     risk_level: str
     created_at: datetime
+
+
+class AISummaryCreate(BaseModel):
+    type: str
+    report_id: int
+
+
+class AISummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    summary: str
+    type: str
+    report_id: int
+    created_at: datetime
