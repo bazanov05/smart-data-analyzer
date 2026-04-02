@@ -75,3 +75,13 @@ class RawData(Base):
     type = Column(String, nullable=False)
     timestamp = Column(DateTime, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class AISummary(Base):
+    __tablename__ = "ai_summary"
+
+    id = Column(Integer, primary_key=True)
+    summary = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    report_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
