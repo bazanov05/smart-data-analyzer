@@ -142,3 +142,29 @@ def create_raw_data_report(db: Session, data: dict) -> RawData:
 def get_raw_data_report(db: Session, report_id: int) -> RawData:
     """Returns a raw data report by id, or None if not found."""
     return db.query(RawData).filter(RawData.id == report_id).first()
+
+
+def create_ai_summary_report(db: Session, data: dict):
+    """
+    Saves an AI-generated summary report to the database.
+    Returns the saved object with generated id and created_at.
+    Rolls back when catches duplicates and ignores them.
+    Rolls back and raises when catch another error than Integrity
+    """
+    try:
+        new_ai_summary_report = AISummary(**data)
+        db.add(new_ai_summary_report)
+        db.commit()
+        db.refresh(new_ai_summary_report)
+        return new_ai_summary_report
+    except IntegrityError:
+        db.rollback()
+        return None
+    except Exception as e:
+        db.rollback()
+        raise e
+
+
+def get_ai_summary_report(db: Session, report_id: int) -> AISummary:
+    """Returns a raw data report by id, or None if not found."""
+    return db.query(AISummary).filter(AISummary.id == report_id).first()
