@@ -3,7 +3,8 @@ from app.db.models import (
     UnverifiedOriginator,
     HighVelocityTransfer,
     GeographicalInflow,
-    RawData
+    RawData,
+    AISummary
 )
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -136,3 +137,8 @@ def create_raw_data_report(db: Session, data: dict) -> RawData:
     except Exception as e:
         db.rollback()
         raise e
+
+
+def get_raw_data_report(db: Session, report_id: int) -> RawData:
+    """Returns a raw data report by id, or None if not found."""
+    return db.query(RawData).filter(RawData.id == report_id).first()
