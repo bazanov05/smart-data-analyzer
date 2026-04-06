@@ -168,3 +168,33 @@ def create_ai_summary_report(db: Session, data: dict):
 def get_ai_summary_report(db: Session, report_id: int) -> AISummary:
     """Returns a raw data report by id, or None if not found."""
     return db.query(AISummary).filter(AISummary.id == report_id).first()
+
+
+def get_all_structuring_attempts(db: Session):
+    """Returns all structuring attempt reports from the database."""
+    return db.query(StructuringAttempt).all()
+
+
+def get_all_unverified_originators(db: Session):
+    """Returns all unverified originator reports from the database."""
+    return db.query(UnverifiedOriginator).all()
+
+
+def get_all_high_velocity_transfers(db: Session):
+    """Returns all high velocity transfer reports from the database."""
+    return db.query(HighVelocityTransfer).all()
+
+
+def get_all_geographical_inflows(db: Session):
+    """Returns all geographical inflow aggregations from the database."""
+    return db.query(GeographicalInflow).all()
+
+
+def get_all_raw_data(db: Session):
+    """Returns all raw transaction records from the database."""
+    return db.query(RawData).all()
+
+
+def get_all_ai_summaries(db: Session):
+    """Returns all AI-generated summary reports from the database."""
+    return db.query(AISummary).all()
