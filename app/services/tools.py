@@ -1,6 +1,8 @@
 from langchain_core.tools import tool
+from sqlalchemy.orm import Session
 from app.db.repository import (
-    get_all_structuring_attempts
+    get_all_structuring_attempts,
+    get_all_geographical_inflows
 )
 
 
@@ -30,10 +32,58 @@ def get_structuring_tool(db_session):
         # db objects and return the formatted string
         formatted_attempts = []
         for attempt in attempts:
-            formatted_attempt = f"id: {attempt.id}, sender_id: {attempt.sender_id}, amount: {attempt.amount}, country: {attempt.country}, created_at: {attempt.created_at}"
+            formatted_attempt = (
+                f"id: {attempt.id}, "
+                f"transaction_id: {attempt.transaction_id}, "
+                f"sender_id: {attempt.sender_id}, "
+                f"receiver_id: {attempt.receiver_id}, "
+                f"amount: {attempt.amount}, "
+                f"summed_amount: {attempt.summed_amount}, "
+                f"country: {attempt.country}, "
+                f"timestamp: {attempt.timestamp}, "
+                f"created_at: {attempt.created_at}"
+                )
+
             formatted_attempts.append(formatted_attempt)
 
         # return the string - not the list(Python object)
         return "\n".join(formatted_attempts)
 
     return fetch_structuring_logs
+
+
+def get_geographical_inflow_tool(db_session: Session):
+    """
+    Outer function which provides db session to our tool
+    as agent himself cannot access our db and
+    tool cannot receive db session as an argument
+    """
+
+    @tool
+    def fetch_geo_inflow_logs() -> str:
+        """
+        Fetches transactions from high-risk or unusual geographic regions.
+        Use this tool whenever the user asks about cross-border risks,
+        international transfers, or geographic anomalies.
+        """
+        attempts = get_all_geographical_inflows(db_session)
+
+        if not attempts:
+            return "No geographical inflow info found in the database."
+
+        formatted_attempts = []
+
+        for attempt in attempts:
+            formatted_attempt = (
+                f"id: {attempt.id}, "
+                f"country: {attempt.country}, "
+                f"inflow: {attempt.inflow}, "
+                f"risk_level: {attempt.risk_level}, "
+                f"created_at: {attempt.created_at}"
+                )
+
+            formatted_attempts.append(formatted_attempt)
+
+        return "\n".join(formatted_attempts)
+
+    return fetch_geo_inflow_logs
