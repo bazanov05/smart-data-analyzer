@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from app.db.repository import (
     get_all_structuring_attempts,
     get_all_geographical_inflows,
-    get_all_high_velocity_transfers
+    get_all_high_velocity_transfers,
+    get_all_unverified_originators
 )
 
 
@@ -123,3 +124,39 @@ def get_high_velocity_transfers_tool(db_session: Session):
         return "\n".join(formatted_attempts)
 
     return fetch_high_velocity_transfers_logs
+
+
+def get_unverified_originators_tool(db_session: Session):
+    """
+    Outer function which provides db session to our tool.
+    """
+    @tool
+    def fetch_unverified_originators_logs() -> str:
+        attempts = get_all_unverified_originators(db=db_session)
+        """
+        Fetches users who have made their very first transfer and have never been
+        seen in the system before.
+        Use this tool when the user asks about new accounts, first-time transactors,
+        unknown users, or originators without a transaction history.
+        """
+        if not attempts:
+            return "No unverified originators were found in the database."
+
+        formatted_attempts = []
+        for attempt in attempts:
+            formatted_attempt = (
+                f"id: {attempt.id}, "
+                f"transaction_id: {attempt.transaction_id}, "
+                f"sender_id: {attempt.sender_id}, "
+                f"receiver_id: {attempt.receiver_id}, "
+                f"amount: {attempt.amount}, "
+                f"num_of_transactions: {attempt.num_of_transactions}, "
+                f"country: {attempt.country}, "
+                f"timestamp: {attempt.timestamp}, "
+                f"created_at: {attempt.created_at}"
+            )
+            formatted_attempts.append(formatted_attempt)
+
+        return "\n".join(formatted_attempts)
+
+    return fetch_unverified_originators_logs
