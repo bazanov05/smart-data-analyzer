@@ -42,8 +42,8 @@ def create_aml_agent(db_session: Session):
     """
 
     # temprature = 0 removes randomness
-    model_object = ChatAnthropic(model="claude-3-5-sonnet-latest", temperature=0)
-    my_tools = []
+    llm = ChatAnthropic(model="claude-3-5-sonnet-latest", temperature=0)
+    model_object = llm.with_structured_output(AMLAnalysisSchema)
 
     structuring_tool = get_structuring_tool(db_session)
     geographical_inflow_tool = get_geographical_inflow_tool(db_session)
