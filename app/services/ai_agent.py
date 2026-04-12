@@ -51,13 +51,13 @@ def create_aml_agent(db_session: Session):
     high_velocity_transfers_tool = get_high_velocity_transfers_tool(db_session)
     raw_data_tool = get_all_raw_data_tool(db_session)
 
-    my_tools.append(
+    my_tools = [
         structuring_tool,
         geographical_inflow_tool,
         unverified_originators_tool,
         high_velocity_transfers_tool,
         raw_data_tool
-        )
+    ]
 
     # creating the strcit conversational framework that AI must follow
     prompt = ChatPromptTemplate.from_messages([
