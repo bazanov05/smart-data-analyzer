@@ -72,8 +72,9 @@ class GeographicalInflowResponse(BaseModel):
 
 
 class AISummaryCreate(BaseModel):
+    summary: str    # was missing — agent generates this
     type: str
-    report_id: int
+    report_id: int | None = None  # None for general summaries not tied to a specific report
 
 
 class AISummaryResponse(BaseModel):
@@ -82,5 +83,5 @@ class AISummaryResponse(BaseModel):
     id: int
     summary: str
     type: str
-    report_id: int
+    report_id: int | None = None  # matches the model
     created_at: datetime
