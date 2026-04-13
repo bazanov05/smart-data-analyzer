@@ -12,6 +12,7 @@ from app.services.tools import (
     get_unverified_originators_tool,
     get_whole_professional_summary_tool
 )
+from app.db.repository import create_ai_summary_report
 
 
 # defines the shape of the ai answer, makes it more structured
@@ -34,7 +35,7 @@ system_promt = (
 system_message = SystemMessage(content=system_promt)
 
 
-def create_aml_agent(db_session: Session):
+def _create_aml_agent(db_session: Session):
     """
     Creates a fully ready-to-use Engine,
     which consists of llm agent, tools, and conversational framework.
@@ -44,7 +45,6 @@ def create_aml_agent(db_session: Session):
 
     # temprature = 0 removes randomness
     llm = ChatAnthropic(model="claude-3-5-sonnet-latest", temperature=0)
-    model_object = llm.with_structured_output(AMLAnalysisSchema)
 
     structuring_tool = get_structuring_tool(db_session)
     geographical_inflow_tool = get_geographical_inflow_tool(db_session)
@@ -75,8 +75,31 @@ def create_aml_agent(db_session: Session):
     ])
 
     # binds llm, tools and prompt into single logical unit
-    agent = create_tool_calling_agent(model_object, my_tools, prompt)
+    agent = create_tool_calling_agent(llm, my_tools, prompt)
 
     agent_executor = AgentExecutor(agent=agent, tools=my_tools, verbose=True)
 
     return agent_executor
+
+
+def run_agent(db: Session, question: str):
+    """
+    Executes the AML agent to analyze a specific compliance question.
+    Saves the result to the database for auditing and returns the final output.
+    """
+    agent_executor = _create_aml_agent(db_session=db)
+
+    # LangChain's trigger expects a dict matching the prompt placeholder
+    history_of_execution = agent_executor.invoke({"input": question})
+
+    # AgentExecutor returns a dict — the answer is always in "output" key as a string
+    final_analysis_string = history_of_execution["output"]
+
+    # Save the summary string to the database
+    create_ai_summary_report(db=db, data={
+        "summary": final_analysis_string,
+        "type": "general",
+        "report_id": None  # None means it's a general summary, not tied to a specific report
+    })
+
+    return final_analysis_string
