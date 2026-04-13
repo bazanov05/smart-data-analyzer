@@ -201,3 +201,94 @@ def get_all_raw_data_tool(db_session: Session):
         return "\n".join(formatted_raw_data)
 
     return fetch_all_raw_data
+
+
+def get_whole_professional_summary_tool(db_session: Session):
+    """
+    Outer function which provides db session to our tool.
+    """
+    @tool
+    def fetch_whole_summary() -> str:
+        """
+        Retrieves a complete summary of all identified risks today.
+        Use this tool first when asked for a general report, daily summary, or an overview of all flags.
+        """
+        structuring_attempts = get_all_structuring_attempts(db=db_session)
+        high_velocity_transfers = get_all_high_velocity_transfers(db=db_session)
+        geographical_inflows = get_all_geographical_inflows(db=db_session)
+        unverified_originators = get_all_unverified_originators(db=db_session)
+
+        result = ""
+
+        result += "=== STRUCTURING ATTEMPTS ===\n\n"
+        if not structuring_attempts:
+            result += "No structuring attempts found in the database.\n"
+        else:
+            for attempt in structuring_attempts:
+                formatted_attempt = (
+                    f"id: {attempt.id}, "
+                    f"transaction_id: {attempt.transaction_id}, "
+                    f"sender_id: {attempt.sender_id}, "
+                    f"receiver_id: {attempt.receiver_id}, "
+                    f"amount: {attempt.amount}, "
+                    f"summed_amount: {attempt.summed_amount}, "
+                    f"country: {attempt.country}, "
+                    f"timestamp: {attempt.timestamp}, "
+                    f"created_at: {attempt.created_at}"
+                )
+                result += formatted_attempt + "\n"
+
+        result += "\n=== HIGH VELOCITY TRANSFERS ===\n\n"
+        if not high_velocity_transfers:
+            result += "No high velocity transfers found in the database.\n"
+        else:
+            for attempt in high_velocity_transfers:
+                formatted_attempt = (
+                    f"id: {attempt.id}, "
+                    f"transaction_id: {attempt.transaction_id}, "
+                    f"sender_id: {attempt.sender_id}, "
+                    f"receiver_id: {attempt.receiver_id}, "
+                    f"amount: {attempt.amount}, "
+                    f"frequency: {attempt.frequency}, "
+                    f"time_gap: {attempt.time_gap}, "
+                    f"country: {attempt.country}, "
+                    f"timestamp: {attempt.timestamp}, "
+                    f"created_at: {attempt.created_at}"
+                )
+                result += formatted_attempt + "\n"
+
+        result += "\n=== GEOGRAPHICAL INFLOWS ===\n\n"
+        if not geographical_inflows:
+            result += "No geographical inflows found in the database.\n"
+        else:
+            for attempt in geographical_inflows:
+                formatted_attempt = (
+                    f"id: {attempt.id}, "
+                    f"country: {attempt.country}, "
+                    f"inflow: {attempt.inflow}, "
+                    f"risk_level: {attempt.risk_level}, "
+                    f"created_at: {attempt.created_at}"
+                )
+                result += formatted_attempt + "\n"
+
+        result += "\n=== UNVERIFIED ORIGINATORS (NEW USERS) ===\n\n"
+        if not unverified_originators:
+            result += "No unverified originators found in the database.\n"
+        else:
+            for attempt in unverified_originators:
+                formatted_attempt = (
+                    f"id: {attempt.id}, "
+                    f"transaction_id: {attempt.transaction_id}, "
+                    f"sender_id: {attempt.sender_id}, "
+                    f"receiver_id: {attempt.receiver_id}, "
+                    f"amount: {attempt.amount}, "
+                    f"num_of_transactions: {attempt.num_of_transactions}, "
+                    f"country: {attempt.country}, "
+                    f"timestamp: {attempt.timestamp}, "
+                    f"created_at: {attempt.created_at}"
+                )
+                result += formatted_attempt + "\n"
+
+        return result
+
+    return fetch_whole_summary
