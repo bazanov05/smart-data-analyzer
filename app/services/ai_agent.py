@@ -4,12 +4,13 @@ from sqlalchemy.orm import Session
 from langchain_anthropic import ChatAnthropic
 from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from tools import (
+from app.services.tools import (
     get_structuring_tool,
     get_all_raw_data_tool,
     get_geographical_inflow_tool,
     get_high_velocity_transfers_tool,
-    get_unverified_originators_tool
+    get_unverified_originators_tool,
+    get_whole_professional_summary_tool
 )
 
 
@@ -50,13 +51,15 @@ def create_aml_agent(db_session: Session):
     unverified_originators_tool = get_unverified_originators_tool(db_session)
     high_velocity_transfers_tool = get_high_velocity_transfers_tool(db_session)
     raw_data_tool = get_all_raw_data_tool(db_session)
+    whole_professional_summary_tool = get_whole_professional_summary_tool(db_session)
 
     my_tools = [
         structuring_tool,
         geographical_inflow_tool,
         unverified_originators_tool,
         high_velocity_transfers_tool,
-        raw_data_tool
+        raw_data_tool,
+        whole_professional_summary_tool
     ]
 
     # creating the strcit conversational framework that AI must follow
