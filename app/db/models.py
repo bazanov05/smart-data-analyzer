@@ -83,5 +83,5 @@ class AISummary(Base):
     id = Column(Integer, primary_key=True)
     summary = Column(String, nullable=False)
     type = Column(String, nullable=False)
-    report_id = Column(Integer, nullable=False)
+    report_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
