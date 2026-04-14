@@ -13,6 +13,7 @@ from app.services.tools import (
     get_whole_professional_summary_tool
 )
 from app.db.repository import create_ai_summary_report
+from typing import Literal
 
 
 # defines the shape of the ai answer, makes it more structured
@@ -24,6 +25,11 @@ class AMLAnalysisSchema(BaseModel):
     summary: str = Field(description="A professional 3-sentence narrative for compliance officers.")
     risk_score: int = Field(description="Risk level from 1-10.")
     reasoning: str = Field(description="Internal logic for the score (not for the final report).")
+
+    # forces AI to categorize its own raport
+    analysis_type: Literal["structuring", "geographical_inflow", "high_velocity", "unverified_originator", "general"] = Field(
+        description="Categorize the type of investigation based on the user's request."
+    )
 
 
 # it's like the job message, describes what to do
