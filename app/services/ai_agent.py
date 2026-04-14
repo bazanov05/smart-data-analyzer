@@ -20,8 +20,11 @@ import json
 # defines the shape of the ai answer, makes it more structured
 class AMLAnalysisSchema(BaseModel):
     """
-    Represents the structured output of an Anti-Money Laundering (AML)
-    investigation.
+    Represents the structured output of an AML investigation.
+
+    Fields like 'risk_score' and 'reasoning' are not persisted in the database,
+    but are required to force the agent into a 'Chain of Thought' process.
+    This improves the accuracy and depth of the final 'summary' field.
     """
     summary: str = Field(description="A professional 3-sentence narrative for compliance officers.")
     risk_score: int = Field(description="Risk level from 1-10.")
