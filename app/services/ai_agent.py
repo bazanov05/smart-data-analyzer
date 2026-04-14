@@ -14,6 +14,7 @@ from app.services.tools import (
 )
 from app.db.repository import create_ai_summary_report
 from typing import Literal
+import json
 
 
 # defines the shape of the ai answer, makes it more structured
@@ -101,11 +102,17 @@ def run_agent(db: Session, question: str):
     # AgentExecutor returns a dict — the answer is always in "output" key as a string
     final_analysis_string = history_of_execution["output"]
 
+    try:
+        ai_data = json.loads(final_analysis_string)
+    except json.JSONDecodeError:
+        # Failsafe just in case the AI hallucinates bad JSON
+        ai_data = {"summary": final_analysis_string, "analysis_type": "general"}
+
     # Save the summary string to the database
     create_ai_summary_report(db=db, data={
-        "summary": final_analysis_string,
-        "type": "general",
-        "report_id": None  # None means it's a general summary, not tied to a specific report
+        "summary": ai_data.get("summary", final_analysis_string),
+        "type": ai_data.get("analysis_type", "general"),
+        "report_id": None  # None unless we are targeting a specific transaction
     })
 
-    return final_analysis_string
+    return ai_data
