@@ -8,6 +8,7 @@ from app.db.repository import (
     get_geographical_inflow_report_by_id,
     get_high_velocity_transfer_report_by_id,
     get_unverified_originator_report_by_id,
+    get_all_raw_data,
     create_geographical_inflow_report,
     create_high_velocity_transfer_report,
     create_structuring_attempt_report,
@@ -150,6 +151,18 @@ def get_high_velocity_transfer(report_id: int, db: Session = Depends(get_db)):
     Returns 404 if no report with the given id exists.
     """
     report = get_high_velocity_transfer_report_by_id(db, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Report with this id does not exist")
+    return report
+
+
+@app.get("/reports/raw_data/{report_id}", response_model=RawDataResponse)
+def get_raw_data_report(report_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches a single raw data report by its internal database id.
+    Returns 404 if no report with the given id exists.
+    """
+    report = get_raw_data_report(db, report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
     return report
