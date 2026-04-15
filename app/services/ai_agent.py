@@ -92,7 +92,7 @@ def _create_aml_agent(db_session: Session):
     return agent_executor
 
 
-def run_agent(db: Session, question: str):
+def run_agent(db: Session, question: str) -> dict:
     """
     Executes the AML agent to analyze a specific compliance question.
     Saves the result to the database for auditing and returns the final output.
