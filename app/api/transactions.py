@@ -24,6 +24,7 @@ from app.db.schemas import (
 )
 from sqlalchemy.orm import Session
 from datetime import timedelta
+from app.services.ai_agent import run_agent
 
 
 app = FastAPI()
@@ -166,3 +167,19 @@ def get_raw_data_report(report_id: int, db: Session = Depends(get_db)):
     if report is None:
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
     return report
+
+
+@app.post("/analyze")
+async def analyze_risk(question: str, db: Session = Depends(get_db)) -> dict:
+    """
+    Triggers the AI AML Analyst.
+    Processes free-text questions about the current data and returns
+    a structured risk analysis.
+    """
+    try:
+        # this calls  run_agent which handles the logic,
+        # the parsing, and the DB saving
+        analysis = await run_in_threadpool(run_agent, db, question)
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
