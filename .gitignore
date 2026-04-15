@@ -5,3 +5,4 @@ temp_*.py
 research/
 __pycache__/
 *.db
+.env/
