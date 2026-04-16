@@ -26,7 +26,8 @@ class AML_System:
         """
 
         # Pandas operates only with sorted time with rollnig()
-        sorted_df = self._df.sort_values(by="timestamp")
+        # sorting on both sender_id and timespamp makes new df more structrured
+        sorted_df = self._df.sort_values(by=["sender_id", "timestamp"])
 
         grouped = sorted_df.groupby("sender_id")
 
@@ -37,7 +38,9 @@ class AML_System:
 
         # The groupby operation creates a MultiIndex (sender_id, row_index).
         # to add a new Series we need to drop the first part of address
-        sorted_df['summed_amount'] = rolling_sum.reset_index(level=0, drop=True)
+        # but we do it by values to prevent situation when sender makes couple of transactions in the same timestamp
+        # values just add first value to first raw and does not care about ids
+        sorted_df['summed_amount'] = rolling_sum.values
 
         # Filter for cases where the cumulative total falls within the suspicious buffer
         # range just below the reporting limit.
