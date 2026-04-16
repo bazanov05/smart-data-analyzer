@@ -6,3 +6,4 @@ research/
 __pycache__/
 *.db
 .env/
+*json
