@@ -97,7 +97,8 @@ class AML_System:
         # As the window moves, transactions older than 'time_window' are excluded from the count.
         rolling_count = grouped_df.rolling(window=time_window, on='timestamp')['amount'].count()
         # Groupby.rolling returns a MultiIndex (sender_id, row_index).
-        # Dropping the sender_id level (level 0) aligns the Series back to the original row index.
-        sorted_df['frequency'] = rolling_count.reset_index(level=0, drop=True)
+        # Dropping the sender_id by values which also prevents duplicate timestamp for the same user
+        # Values just pastes the numbers in their order and does not care about id
+        sorted_df['frequency'] = rolling_count.values
 
         return sorted_df.loc[sorted_df['frequency'] >= frequency_limit]
