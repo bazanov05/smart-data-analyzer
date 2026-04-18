@@ -18,7 +18,10 @@ from app.db.repository import (
     get_all_geographical_inflows,
     create_raw_data_report,
     get_raw_data_report,
-    get_all_raw_data
+    get_all_raw_data,
+    create_ai_summary_report,
+    get_ai_summary_report,
+    get_all_ai_summaries
 )
 
 
@@ -382,5 +385,73 @@ def test_get_all_raw_data_success(db_session, valid_raw_data):
 
 def test_get_all_raw_data_empty(db_session):
     all_reports = get_all_raw_data(db_session)
+    assert len(all_reports) == 0
+    assert isinstance(all_reports, list)
+
+
+@pytest.fixture
+def valid_ai_summary():
+    # Note: 'report_id' is nullable=True in schema, so it's optional but good to test
+    return {
+        "summary": "This user is exhibiting smurfing behavior.",
+        "type": "structuring_analysis",
+        "report_id": 1
+    }
+
+
+def test_create_ai_summary_success(db_session, valid_ai_summary):
+    report = create_ai_summary_report(db_session, valid_ai_summary)
+    assert report is not None
+    assert report.id is not None
+    assert report.type == "structuring_analysis"
+    assert report.report_id == 1
+
+
+def test_create_ai_summary_missing_field(db_session, valid_ai_summary):
+    # 'summary' is nullable=False
+    del valid_ai_summary["summary"]
+
+    invalid_report = create_ai_summary_report(db_session, valid_ai_summary)
+    assert invalid_report is None
+
+
+def test_create_ai_summary_without_report_id(db_session, valid_ai_summary):
+    # report_id is allowed to be null, so this should succeed
+    del valid_ai_summary["report_id"]
+
+    report = create_ai_summary_report(db_session, valid_ai_summary)
+    assert report is not None
+    assert report.report_id is None
+
+
+def test_get_ai_summary_by_id_success(db_session, valid_ai_summary):
+    created = create_ai_summary_report(db_session, valid_ai_summary)
+
+    fetched = get_ai_summary_report(db_session, created.id)
+    assert fetched is not None
+    assert fetched.id == created.id
+    assert "smurfing behavior" in fetched.summary
+
+
+def test_get_ai_summary_by_id_not_found(db_session):
+    fetched = get_ai_summary_report(db_session, 999)
+    assert fetched is None
+
+
+def test_get_all_ai_summaries_success(db_session, valid_ai_summary):
+    create_ai_summary_report(db_session, valid_ai_summary)
+
+    second_summary = {
+        "summary": "High risk geographic transfer detected.",
+        "type": "geo_analysis"
+    }
+    create_ai_summary_report(db_session, second_summary)
+
+    all_reports = get_all_ai_summaries(db_session)
+    assert len(all_reports) == 2
+
+
+def test_get_all_ai_summaries_empty(db_session):
+    all_reports = get_all_ai_summaries(db_session)
     assert len(all_reports) == 0
     assert isinstance(all_reports, list)
