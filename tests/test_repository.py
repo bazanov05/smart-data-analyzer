@@ -15,7 +15,10 @@ from app.db.repository import (
     get_all_high_velocity_transfers,
     create_geographical_inflow_report,
     get_geographical_inflow_report_by_id,
-    get_all_geographical_inflows
+    get_all_geographical_inflows,
+    create_raw_data_report,
+    get_raw_data_report,
+    get_all_raw_data
 )
 
 
@@ -309,5 +312,75 @@ def test_get_all_geographical_inflows_success(db_session, valid_geo_data):
 
 def test_get_all_geographical_inflows_empty(db_session):
     all_reports = get_all_geographical_inflows(db_session)
+    assert len(all_reports) == 0
+    assert isinstance(all_reports, list)
+
+
+@pytest.fixture
+def valid_raw_data():
+    return {
+        "transaction_id": "TX_RAW_001",
+        "sender_id": "Sender_R",
+        "receiver_id": "Receiver_R",
+        "amount": 100.50,
+        "country": "CA",
+        "type": "transfer",
+        "timestamp": datetime.now()
+    }
+
+
+def test_create_raw_data_success(db_session, valid_raw_data):
+    report = create_raw_data_report(db_session, valid_raw_data)
+    assert report is not None
+    assert report.id is not None
+    assert report.transaction_id == "TX_RAW_001"
+    assert report.country == "CA"
+
+
+def test_create_raw_data_duplicate_transaction(db_session, valid_raw_data):
+    # First insert
+    create_raw_data_report(db_session, valid_raw_data)
+
+    # Second insert with same unique transaction_id should fail safely
+    duplicate = create_raw_data_report(db_session, valid_raw_data)
+    assert duplicate is None
+
+
+def test_create_raw_data_missing_field(db_session, valid_raw_data):
+    # Remove mandatory 'amount' field
+    del valid_raw_data["amount"]
+
+    invalid_report = create_raw_data_report(db_session, valid_raw_data)
+    assert invalid_report is None
+
+
+def test_get_raw_data_by_id_success(db_session, valid_raw_data):
+    created = create_raw_data_report(db_session, valid_raw_data)
+
+    fetched = get_raw_data_report(db_session, created.id)
+    assert fetched is not None
+    assert fetched.id == created.id
+    assert fetched.sender_id == "Sender_R"
+
+
+def test_get_raw_data_by_id_not_found(db_session):
+    fetched = get_raw_data_report(db_session, 999)
+    assert fetched is None
+
+
+def test_get_all_raw_data_success(db_session, valid_raw_data):
+    create_raw_data_report(db_session, valid_raw_data)
+
+    second_data = valid_raw_data.copy()
+    second_data["transaction_id"] = "TX_RAW_002"
+    second_data["sender_id"] = "Sender_Z"
+    create_raw_data_report(db_session, second_data)
+
+    all_reports = get_all_raw_data(db_session)
+    assert len(all_reports) == 2
+
+
+def test_get_all_raw_data_empty(db_session):
+    all_reports = get_all_raw_data(db_session)
     assert len(all_reports) == 0
     assert isinstance(all_reports, list)
