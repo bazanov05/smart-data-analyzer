@@ -12,7 +12,10 @@ from app.db.repository import (
     get_all_unverified_originators,
     create_high_velocity_transfer_report,
     get_high_velocity_transfer_report_by_id,
-    get_all_high_velocity_transfers
+    get_all_high_velocity_transfers,
+    create_geographical_inflow_report,
+    get_geographical_inflow_report_by_id,
+    get_all_geographical_inflows
 )
 
 
@@ -237,5 +240,74 @@ def test_get_all_high_velocity_transfers_success(db_session, valid_high_velocity
 
 def test_get_all_high_velocity_transfers_empty(db_session):
     all_reports = get_all_high_velocity_transfers(db_session)
+    assert len(all_reports) == 0
+    assert isinstance(all_reports, list)
+
+
+@pytest.fixture
+def valid_geo_data():
+    return {
+        "country": "PA",
+        "inflow": 7500.50,
+        "risk_level": "High-risk"
+    }
+
+
+def test_create_geographical_inflow_success(db_session, valid_geo_data):
+    report = create_geographical_inflow_report(db_session, valid_geo_data)
+    assert report is not None
+    assert report.id is not None
+    assert report.country == "PA"
+    assert float(report.inflow) == 7500.50
+
+
+def test_create_geographical_inflow_duplicate_country(db_session, valid_geo_data):
+    # First insert for Panama succeeds
+    create_geographical_inflow_report(db_session, valid_geo_data)
+
+    # Second insert for Panama MUST fail because country is unique=True
+    duplicate = create_geographical_inflow_report(db_session, valid_geo_data)
+    assert duplicate is None
+
+
+def test_create_geographical_inflow_missing_field(db_session, valid_geo_data):
+    # Remove mandatory 'risk_level' field
+    del valid_geo_data["risk_level"]
+
+    invalid_report = create_geographical_inflow_report(db_session, valid_geo_data)
+    assert invalid_report is None
+
+
+def test_get_geographical_inflow_by_id_success(db_session, valid_geo_data):
+    created = create_geographical_inflow_report(db_session, valid_geo_data)
+
+    fetched = get_geographical_inflow_report_by_id(db_session, created.id)
+    assert fetched is not None
+    assert fetched.id == created.id
+    assert fetched.country == "PA"
+
+
+def test_get_geographical_inflow_by_id_not_found(db_session):
+    fetched = get_geographical_inflow_report_by_id(db_session, 999)
+    assert fetched is None
+
+
+def test_get_all_geographical_inflows_success(db_session, valid_geo_data):
+    create_geographical_inflow_report(db_session, valid_geo_data)
+
+    # Add a second, different country
+    second_data = {
+        "country": "US",
+        "inflow": 1200.00,
+        "risk_level": "Low-risk"
+    }
+    create_geographical_inflow_report(db_session, second_data)
+
+    all_reports = get_all_geographical_inflows(db_session)
+    assert len(all_reports) == 2
+
+
+def test_get_all_geographical_inflows_empty(db_session):
+    all_reports = get_all_geographical_inflows(db_session)
     assert len(all_reports) == 0
     assert isinstance(all_reports, list)
