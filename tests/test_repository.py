@@ -6,7 +6,10 @@ from app.db.database import Base
 from app.db.repository import (
     create_structuring_attempt_report,
     get_structuring_attempt_report_by_id,
-    get_all_structuring_attempts
+    get_all_structuring_attempts,
+    create_unverified_originator_report,
+    get_unverified_originator_report_by_id,
+    get_all_unverified_originators
 )
 
 
@@ -87,5 +90,76 @@ def test_get_all_structuring_attempts_success(db_session, valid_structuring_data
 
 def test_get_all_structuring_attempts_empty(db_session):
     all_reports = get_all_structuring_attempts(db_session)
+    assert len(all_reports) == 0
+    assert isinstance(all_reports, list)
+
+
+@pytest.fixture
+def valid_unverified_data():
+    return {
+        "transaction_id": "TX_UV_001",
+        "sender_id": "New_User_1",
+        "receiver_id": "Receiver_X",
+        "amount": 500.00,
+        "country": "UK",
+        "type": "transfer",
+        "num_of_transactions": 1,
+        "timestamp": datetime.now()
+    }
+
+
+def test_create_unverified_originator_success(db_session, valid_unverified_data):
+    report = create_unverified_originator_report(db_session, valid_unverified_data)
+    assert report is not None
+    assert report.id is not None
+    assert report.transaction_id == "TX_UV_001"
+    assert report.num_of_transactions == 1
+
+
+def test_create_unverified_originator_duplicate_transaction(db_session, valid_unverified_data):
+    # First insert works
+    create_unverified_originator_report(db_session, valid_unverified_data)
+
+    # Second insert with same transaction_id should be caught by IntegrityError and return None
+    duplicate = create_unverified_originator_report(db_session, valid_unverified_data)
+    assert duplicate is None
+
+
+def test_create_unverified_originator_missing_field(db_session, valid_unverified_data):
+    # Remove mandatory 'country' field
+    del valid_unverified_data["country"]
+
+    invalid_report = create_unverified_originator_report(db_session, valid_unverified_data)
+    assert invalid_report is None
+
+
+def test_get_unverified_originator_by_id_success(db_session, valid_unverified_data):
+    created = create_unverified_originator_report(db_session, valid_unverified_data)
+
+    fetched = get_unverified_originator_report_by_id(db_session, created.id)
+    assert fetched is not None
+    assert fetched.id == created.id
+    assert fetched.sender_id == "New_User_1"
+
+
+def test_get_unverified_originator_by_id_not_found(db_session):
+    fetched = get_unverified_originator_report_by_id(db_session, 999)
+    assert fetched is None
+
+
+def test_get_all_unverified_originators_success(db_session, valid_unverified_data):
+    create_unverified_originator_report(db_session, valid_unverified_data)
+
+    second_data = valid_unverified_data.copy()
+    second_data["transaction_id"] = "TX_UV_002"
+    second_data["sender_id"] = "New_User_2"
+    create_unverified_originator_report(db_session, second_data)
+
+    all_reports = get_all_unverified_originators(db_session)
+    assert len(all_reports) == 2
+
+
+def test_get_all_unverified_originators_empty(db_session):
+    all_reports = get_all_unverified_originators(db_session)
     assert len(all_reports) == 0
     assert isinstance(all_reports, list)
