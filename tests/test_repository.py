@@ -9,7 +9,10 @@ from app.db.repository import (
     get_all_structuring_attempts,
     create_unverified_originator_report,
     get_unverified_originator_report_by_id,
-    get_all_unverified_originators
+    get_all_unverified_originators,
+    create_high_velocity_transfer_report,
+    get_high_velocity_transfer_report_by_id,
+    get_all_high_velocity_transfers
 )
 
 
@@ -161,5 +164,78 @@ def test_get_all_unverified_originators_success(db_session, valid_unverified_dat
 
 def test_get_all_unverified_originators_empty(db_session):
     all_reports = get_all_unverified_originators(db_session)
+    assert len(all_reports) == 0
+    assert isinstance(all_reports, list)
+
+
+@pytest.fixture
+def valid_high_velocity_data():
+    return {
+        "transaction_id": "TX_HV_001",
+        "sender_id": "Fast_Sender_A",
+        "receiver_id": "Receiver_Y",
+        "amount": 100.00,
+        "country": "US",
+        "type": "transfer",
+        "frequency": 8,
+        "timestamp": datetime.now(),
+        "time_gap": "00:05:00"  # model expects a String here
+    }
+
+
+def test_create_high_velocity_transfer_success(db_session, valid_high_velocity_data):
+    report = create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+    assert report is not None
+    assert report.id is not None
+    assert report.transaction_id == "TX_HV_001"
+    assert report.frequency == 8
+    assert report.time_gap == "00:05:00"
+
+
+def test_create_high_velocity_transfer_duplicate(db_session, valid_high_velocity_data):
+    # First insert works
+    create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+
+    # Second insert with the same transaction_id should fail safely
+    duplicate = create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+    assert duplicate is None
+
+
+def test_create_high_velocity_transfer_missing_field(db_session, valid_high_velocity_data):
+    # Remove mandatory 'frequency' field
+    del valid_high_velocity_data["frequency"]
+
+    invalid_report = create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+    assert invalid_report is None
+
+
+def test_get_high_velocity_by_id_success(db_session, valid_high_velocity_data):
+    created = create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+
+    fetched = get_high_velocity_transfer_report_by_id(db_session, created.id)
+    assert fetched is not None
+    assert fetched.id == created.id
+    assert fetched.sender_id == "Fast_Sender_A"
+
+
+def test_get_high_velocity_by_id_not_found(db_session):
+    fetched = get_high_velocity_transfer_report_by_id(db_session, 999)
+    assert fetched is None
+
+
+def test_get_all_high_velocity_transfers_success(db_session, valid_high_velocity_data):
+    create_high_velocity_transfer_report(db_session, valid_high_velocity_data)
+
+    second_data = valid_high_velocity_data.copy()
+    second_data["transaction_id"] = "TX_HV_002"
+    second_data["frequency"] = 12
+    create_high_velocity_transfer_report(db_session, second_data)
+
+    all_reports = get_all_high_velocity_transfers(db_session)
+    assert len(all_reports) == 2
+
+
+def test_get_all_high_velocity_transfers_empty(db_session):
+    all_reports = get_all_high_velocity_transfers(db_session)
     assert len(all_reports) == 0
     assert isinstance(all_reports, list)
