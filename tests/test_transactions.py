@@ -146,3 +146,43 @@ def test_get_geographical_inflow_not_found():
     response = client.get("/reports/geographical_inflow/999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Report with this id does not exist"
+
+
+def test_analyze_risk_success(mocker):
+    # 1. Intercept the function using the mocker fixture
+    mock_run_agent = mocker.patch("app.api.transactions.run_agent")
+
+    # 2. Tell the mock exactly what to return when called
+    mock_run_agent.return_value = {
+        "risk_level": "High",
+        "summary": "Simulated AI detected smurfing.",
+        "action_required": True
+    }
+
+    # 3. Call  API endpoint
+    response = client.post("/analyze?question=Are there any risks?")
+
+    # 4. Verify the response
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["risk_level"] == "High"
+    assert "smurfing" in data["summary"]
+
+    # Verify that  endpoint actually tried to call the agent
+    mock_run_agent.assert_called_once()
+
+
+def test_analyze_risk_handles_exception(mocker):
+    # 1. Intercept the function
+    mock_run_agent = mocker.patch("app.api.transactions.run_agent")
+
+    # 2. Tell the mock to simulate a crash
+    mock_run_agent.side_effect = Exception("LLM API Timeout")
+
+    # 3. Call  API endpoint
+    response = client.post("/analyze?question=What about this data?")
+
+    # 4. Verify  API catches the crash and returns the correct error code
+    assert response.status_code == 500
+    assert response.json()["detail"] == "LLM API Timeout"
