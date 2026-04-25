@@ -20,12 +20,20 @@ from app.db.schemas import (
     UnverifiedOriginatorResponse,
     GeographicalInflowResponse,
     HighVelocityTransferResponse,
-    RawDataResponse
+    RawDataResponse,
+    AISummaryResponse
 )
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.services.ai_agent import run_agent
-
+from typing import List
+from app.db.repository import (
+    get_all_structuring_attempts,
+    get_all_unverified_originators,
+    get_all_geographical_inflows,
+    get_all_high_velocity_transfers,
+    get_all_ai_summaries
+)
 
 app = FastAPI()
 REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type', 'timestamp'}
@@ -183,3 +191,39 @@ async def analyze_risk(question: str, db: Session = Depends(get_db)) -> dict:
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/reports/structuring_attempts", response_model=List[StructuringAttemptResponse])
+def get_all_structuring_attempts_route(db: Session = Depends(get_db)):
+    """Fetches all structuring attempt records for the dashboard table."""
+    return get_all_structuring_attempts(db)
+
+
+@app.get("/reports/unverified_originators", response_model=List[UnverifiedOriginatorResponse])
+def get_all_unverified_originators_route(db: Session = Depends(get_db)):
+    """Fetches all unverified originator records for the dashboard table."""
+    return get_all_unverified_originators(db)
+
+
+@app.get("/reports/geographical_inflows", response_model=List[GeographicalInflowResponse])
+def get_all_geographical_inflows_route(db: Session = Depends(get_db)):
+    """Fetches all geographical inflow records for the dashboard table."""
+    return get_all_geographical_inflows(db)
+
+
+@app.get("/reports/high_velocity_transfers", response_model=List[HighVelocityTransferResponse])
+def get_all_high_velocity_transfers_route(db: Session = Depends(get_db)):
+    """Fetches all high velocity transfer records for the dashboard table."""
+    return get_all_high_velocity_transfers(db)
+
+
+@app.get("/reports/raw_data", response_model=List[RawDataResponse])
+def get_all_raw_data_route(db: Session = Depends(get_db)):
+    """Fetches all raw data records."""
+    return get_all_raw_data(db)
+
+
+@app.get("/reports/ai_summaries", response_model=List[AISummaryResponse])
+def get_all_ai_summaries_route(db: Session = Depends(get_db)):
+    """Fetches all ai summaries for the dashboard table."""
+    return get_all_ai_summaries(db)
