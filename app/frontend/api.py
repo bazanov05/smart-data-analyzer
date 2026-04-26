@@ -17,7 +17,7 @@ class AMLApiClient:
         # Session allows to reuse the connection, keeps it open
         self._session = requests.Session()
 
-    def upload_csv(self, file: BytesIO):
+    def upload_csv(self, file: BytesIO) -> dict | None:
         """
         Sends a CSV file to the backend /update endpoint for AML analysis.
         Returns dict if the analysis was successful,
@@ -32,3 +32,75 @@ class AMLApiClient:
             return response.json()
         except requests.exceptions.RequestException:
             return None     # server is unreachable
+
+    def get_structuring_attempts(self) -> list:
+        """
+        Fetches all structuring attempt reports.
+        Calls the backend route and returns a list of records for the dashboard table.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/structuring_attempts")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
+
+    def get_unverified_originators(self) -> list:
+        """
+        Fetches all unverified originator reports.
+        Calls the backend route and returns a list of records for the dashboard table.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/unverified_originators")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
+
+    def get_geographical_inflows(self) -> list:
+        """
+        Fetches all geographical inflow reports.
+        Calls the backend route and returns a list of records for the dashboard table.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/geographical_inflows")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
+
+    def get_high_velocity_transfers(self) -> list:
+        """
+        Fetches all high velocity transfer reports.
+        Calls the backend route and returns a list of records for the dashboard table.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/high_velocity_transfers")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
+
+    def get_raw_data(self) -> list:
+        """
+        Fetches all raw transaction data.
+        Calls the backend route and returns a list of the original transaction records.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/raw_data")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
+
+    def get_ai_summaries(self) -> list:
+        """
+        Fetches all historical AI summaries.
+        Calls the backend route and returns a list of previously generated AI insights.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/ai_summaries")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return []
