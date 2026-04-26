@@ -64,6 +64,27 @@ def show_structuring_page(api: AMLApiClient):
             details = api.get_structuring_attempt_by_id(report_id)
 
             if details:
-                st.write(details)
+                left_col, right_col = st.columns(2)
+
+                with left_col:
+                    st.write("**Transaction Info**")
+                    st.metric("Transaction ID", details.get("transaction_id", "N/A"))
+                    st.metric("Amount", f"${details.get('amount', 0):,.2f}")
+                    st.metric("Type", details.get("type", "N/A").replace("_", " ").title())
+
+                    # format timestamp to be more readable (YYYY-MM-DD HH:MM)
+                    ts = details.get("timestamp", "N/A")
+                    readable_ts = ts.split(".")[0].replace("T", " ") if "T" in str(ts) else ts
+                    st.metric("Timestamp", readable_ts)
+
+                with right_col:
+                    st.write("**Entity & Risk Info**")
+                    st.metric("Sender ID", details.get("sender_id", "N/A"))
+                    st.metric("Receiver ID", details.get("receiver_id", "N/A"))
+                    st.metric("Country", details.get("country", "N/A"))
+
+                    summed = details.get("summed_amount")
+                    if summed is not None:
+                        st.metric("Total Structuring Value", f"${summed:,.2f}")
             else:
                 st.info("Could not retrieve details for this report.")
