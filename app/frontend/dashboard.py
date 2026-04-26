@@ -34,6 +34,8 @@ with st.sidebar:
     if uploaded_file:
         # immediate feedback for user - green box with chechmark icon
         st.success("File ready for analysis")
+        if st.button("Analyze"):
+            pass
 
 # handle the navigation logic
 match menu:
