@@ -12,8 +12,16 @@ with st.sidebar:
     # radio because we can click only at one
     menu = st.radio(
         "Navigation",
-        ["Overview", "Structuring", "High velocity", "Geographic", "AI agent"],
-        label_visibility="collapsed"    # to hide the Navigation word from the user
+        [
+            "Overview",
+            "Structuring attempts",
+            "High velocity",
+            "Geographic inflow",
+            "Unverified originators",
+            "AI summaries",
+            "AI agent",
+        ],
+        label_visibility="collapsed"
     )
 
     st.divider()
