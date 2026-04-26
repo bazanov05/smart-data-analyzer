@@ -104,3 +104,63 @@ class AMLApiClient:
             return response.json()
         except requests.exceptions.RequestException:
             return []
+
+    def get_structuring_attempt_by_id(self, report_id: int) -> dict:
+        """
+        Fetches a single structuring attempt report by ID.
+        Returns a dictionary with the report details, or an empty dict if not found.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/structuring_attempt/{report_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
+
+    def get_unverified_originator_by_id(self, report_id: int) -> dict:
+        """
+        Fetches a single unverified originator report by ID.
+        Returns a dictionary with the report details, or an empty dict if not found.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/unverified_originator/{report_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
+
+    def get_geographical_inflow_by_id(self, report_id: int) -> dict:
+        """
+        Fetches a single geographical inflow report by ID.
+        Returns a dictionary with the report details, or an empty dict if not found.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/geographical_inflow/{report_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
+
+    def get_high_velocity_transfer_by_id(self, report_id: int) -> dict:
+        """
+        Fetches a single high velocity transfer report by ID.
+        Returns a dictionary with the report details, or an empty dict if not found.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/high_velocity_transfer/{report_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
+
+    def get_raw_data_by_id(self, report_id: int) -> dict:
+        """
+        Fetches a single raw data report by ID.
+        Returns a dictionary with the report details, or an empty dict if not found.
+        """
+        try:
+            response = self._session.get(f"{self._url}/reports/raw_data/{report_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
