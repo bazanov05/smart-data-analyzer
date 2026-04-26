@@ -1,4 +1,5 @@
 import streamlit as st
+from app.frontend.api import AMLApiClient
 
 
 st.set_page_config(page_title="AML System", layout="wide")
@@ -35,7 +36,18 @@ with st.sidebar:
         # immediate feedback for user - green box with chechmark icon
         st.success("File ready for analysis")
         if st.button("Analyze"):
-            pass
+            api = AMLApiClient()
+            response = api.upload_csv(file=uploaded_file)
+            if response is None:
+                st.error(
+                    "Connection Error: Could not reach the AML Backend. "
+                    "Please ensure the FastAPI server is running "
+                    "at http://localhost:8000."
+                    )
+                st.stop()  # prevents the rest of the script from running
+
+            st.session_state["aml_data"] = response
+            st.success("Analysis complete! Switch tabs to view reports.")
 
 # handle the navigation logic
 match menu:
