@@ -1,8 +1,17 @@
 import streamlit as st
 from app.frontend.api import AMLApiClient
-
+from app.frontend.pages.structuring_page import show_structuring_page
 
 st.set_page_config(page_title="AML System", layout="wide")
+
+
+# initialize the API client once globally using cache_resource
+@st.cache_resource
+def get_api_client():
+    return AMLApiClient()
+
+
+api = get_api_client()
 
 
 # everything should be placed on the left side
@@ -36,7 +45,13 @@ with st.sidebar:
         # immediate feedback for user - green box with chechmark icon
         st.success("File ready for analysis")
         if st.button("Analyze"):
-            api = AMLApiClient()
+
+            # clean the state if user uploads a new CSV file
+            # without it old data will be shown because of the logic in pages
+            for key in ["structuring_attempts", "high_velocity", "geo_inflow", "unverified_users", "ai_sum"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+
             response = api.upload_csv(file=uploaded_file)
             if response is None:
                 st.error(
@@ -56,6 +71,7 @@ match menu:
 
     case "Structuring attempts":
         st.subheader("Structuring Analysis")
+        show_structuring_page(api)
 
     case "High velocity":
         st.subheader("High Velocity Transfers")
