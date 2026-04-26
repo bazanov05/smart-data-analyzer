@@ -1,21 +1,28 @@
 import streamlit as st
 
 
-# catch the users choice in a variable
-# radio - because we can click only on one board at a time
-page = st.sidebar.radio("Navigation", [
-    "Overview",
-    "Structuring attempts",
-    "High velocity",
-    "Geographic inflow",
-    "Unverified originators",
-    "AI summaries",
-    "AI agent",
-])
+st.set_page_config(page_title="AML System", layout="wide")
 
+
+with st.sidebar:
+    st.title("AML Analyzer")
+    st.caption("smart-data-analyzer")
+
+    menu = st.radio(
+        "Navigation",
+        ["Overview", "Structuring", "High velocity", "Geographic", "AI agent"],
+        label_visibility="collapsed"
+    )
+
+    st.divider()
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+
+    # placeholder for API upload trigger
+    if uploaded_file:
+        st.success("File ready for analysis")
 
 # handle the navigation logic
-match page:
+match menu:
     case "Overview":
         st.subheader("System Overview")
 
