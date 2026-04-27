@@ -10,13 +10,12 @@ class AML_System:
         return value > 0
 
     def __init__(self, transaction_ledger: pd.DataFrame, target_limit=10000, buffer=1000):
-        # copy to avoid modifying the original dataframe globally
+        # copying ledger to keep the original data safe
         self._df = transaction_ledger.copy()
 
-        # Python passes raw Python `datetime` objects. If pandas doesn't explicitly
-        # convert them to `datetime64[ns]`, the .rolling() function will crash.
-        # we check if column exists so dummy tests without timestamps don't crash
+        # check if timestamp exists - prevents crashes during validation tests
         if 'timestamp' in self._df.columns:
+            # explicit conversion to datetime ensures rolling works with any input
             self._df['timestamp'] = pd.to_datetime(self._df['timestamp'])
 
         if not self._is_value_positive(target_limit) or not self._is_value_positive(buffer):
@@ -31,7 +30,7 @@ class AML_System:
         Identifies potential structuring by calculating rolling cumulative transaction
         amounts per sender within a specific time window.
         """
-        # make a local copy first so sorted_df exists before we call it
+        # copy first - fixes UnboundLocalError
         sorted_df = self._df.copy()
 
         # temporary ID prevents groupby from dropping rows with missing sender_id
@@ -69,6 +68,7 @@ class AML_System:
         # use transfrom() instead of count() not to collapse data
         # the result of count will be added to every row
         # we want to save all transaction data not only sender_id
+        # counting amount is safer than counting sender_id (handles NaNs)
         grouped_df['num_of_transactions'] = grouped_df.groupby("sender_id")["amount"].transform("count")
 
         return grouped_df.loc[grouped_df['num_of_transactions'] == 1]
@@ -99,10 +99,10 @@ class AML_System:
         Identifies senders performing an unusually high
         number of transactions within a rolling time window
         """
-        # copy first before doing anything
+        # copy first - prevents UnboundLocalError
         sorted_df = self._df.copy()
 
-        # temporary ID prevents dropping unverified users
+        # temporary ID prevents dropping unverified users during groupby
         sorted_df['temp_sender'] = sorted_df['sender_id'].fillna("UNKNOWN")
 
         # Pandas operates only with sorted time with rollnig()
@@ -114,5 +114,8 @@ class AML_System:
 
         # use .values to avoid the "duplicate labels" reindexing error
         sorted_df['frequency'] = rolling_count.values
+
+        # time_gap is required in db models
+        sorted_df['time_gap'] = str(time_window)
 
         return sorted_df.loc[sorted_df['frequency'] >= frequency_limit].drop(columns=['temp_sender'])
