@@ -48,9 +48,13 @@ def _save_report_with_timestamp(func_to_create, db, reports: list):
     saved = []
     for report in reports:
         if "timestamp" in report:
+            # pd.to_datetime handles both strings and objects safely
+            # then .to_pydatetime() converts it to a format SQLite understands
+            report["timestamp"] = pd.to_datetime(report['timestamp']).to_pydatetime()
+
             if "timegap" in report:
                 report["timegap"] = str(report["timegap"])
-            report["timestamp"] = report['timestamp'].to_pydatetime()
+
             new_report = func_to_create(db, report)
             if new_report is not None:
                 saved.append(new_report)
@@ -79,9 +83,9 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
 
     raw_data = df.fillna("None").to_dict(orient="records")
     structuring_attemps = aml.detect_structuring_attempts(timedelta(hours=1)).fillna("None").to_dict(orient='records')
-    unverified_originators = aml.identify_unverified_originators().fillna("Unverified").to_dict(orient="records")
+    unverified_originators = aml.identify_unverified_originators().fillna("None").to_dict(orient="records")
     geographic_inflows = aml.aggregate_geographic_inflow().to_dict(orient="records")
-    high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 5).to_dict(orient="records")
+    high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 2).fillna("None").to_dict(orient="records")
 
     saved_struct_attempt_reports = _save_report_with_timestamp(create_structuring_attempt_report, db, structuring_attemps)
     saved_unver_org_reports = _save_report_with_timestamp(create_unverified_originator_report, db, unverified_originators)
