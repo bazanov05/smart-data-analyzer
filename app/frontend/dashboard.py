@@ -1,6 +1,8 @@
 import streamlit as st
 from app.frontend.api import AMLApiClient
 from app.frontend.pages.structuring_page import show_structuring_page
+from app.frontend.pages.high_velocity_page import show_high_velocity_page
+
 
 st.set_page_config(page_title="AML System", layout="wide")
 
@@ -75,6 +77,7 @@ match menu:
 
     case "High velocity":
         st.subheader("High Velocity Transfers")
+        show_high_velocity_page(api)
 
     case "Geographic inflow":
         st.subheader("Geographic Risk Inflow")
