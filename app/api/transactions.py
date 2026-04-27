@@ -83,9 +83,9 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
 
     raw_data = df.fillna("None").to_dict(orient="records")
     structuring_attemps = aml.detect_structuring_attempts(timedelta(hours=1)).fillna("None").to_dict(orient='records')
-    unverified_originators = aml.identify_unverified_originators().fillna("None").to_dict(orient="records")
+    unverified_originators = aml.identify_unverified_originators().fillna("Unverified").to_dict(orient="records")
     geographic_inflows = aml.aggregate_geographic_inflow().to_dict(orient="records")
-    high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 2).fillna("None").to_dict(orient="records")
+    high_velocity_transfers = aml.detect_high_velocity_transfers(timedelta(hours=1), 2).fillna("Unverified").to_dict(orient="records")
 
     saved_struct_attempt_reports = _save_report_with_timestamp(create_structuring_attempt_report, db, structuring_attemps)
     saved_unver_org_reports = _save_report_with_timestamp(create_unverified_originator_report, db, unverified_originators)
