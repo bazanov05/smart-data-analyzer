@@ -75,8 +75,6 @@ async def upload_a_csv_file(file: UploadFile = File(...), db=Depends(get_db)):
     if len(missing_cols) != 0:
         raise HTTPException(status_code=400, detail=list(missing_cols))
 
-    # convert to pandas TimeStamp
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
     aml = AML_System(df)
 
     raw_data = df.fillna("None").to_dict(orient="records")
