@@ -2,6 +2,7 @@ import streamlit as st
 from app.frontend.api import AMLApiClient
 from app.frontend.pages.structuring_page import show_structuring_page
 from app.frontend.pages.high_velocity_page import show_high_velocity_page
+from app.frontend.pages.unverified_page import show_unverified_users_page
 
 
 st.set_page_config(page_title="AML System", layout="wide")
@@ -84,6 +85,7 @@ match menu:
 
     case "Unverified originators":
         st.subheader("Unverified Originator Reports")
+        show_unverified_users_page(api)
 
     case "AI summaries":
         st.subheader("Historical AI Insights")
