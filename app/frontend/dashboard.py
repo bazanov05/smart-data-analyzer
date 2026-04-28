@@ -7,6 +7,13 @@ from app.frontend.pages.unverified_page import show_unverified_users_page
 
 st.set_page_config(page_title="AML System", layout="wide")
 
+# completely hides the default auto-generated pages menu
+st.markdown("""
+    <style>
+        [data-testid="stSidebarNav"] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
+
 
 # initialize the API client once globally using cache_resource
 @st.cache_resource
