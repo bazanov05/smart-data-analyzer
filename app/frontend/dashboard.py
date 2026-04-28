@@ -3,6 +3,7 @@ from app.frontend.api import AMLApiClient
 from app.frontend.pages.structuring_page import show_structuring_page
 from app.frontend.pages.high_velocity_page import show_high_velocity_page
 from app.frontend.pages.unverified_page import show_unverified_users_page
+from app.frontend.pages.geo_inflow_page import show_geo_inflow_page
 
 
 st.set_page_config(page_title="AML System", layout="wide")
@@ -89,6 +90,7 @@ match menu:
 
     case "Geographic inflow":
         st.subheader("Geographic Risk Inflow")
+        show_geo_inflow_page(api)
 
     case "Unverified originators":
         st.subheader("Unverified Originator Reports")
