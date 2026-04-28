@@ -53,7 +53,7 @@ def _save_report_with_timestamp(func_to_create, db, reports: list):
             report["timestamp"] = pd.to_datetime(report['timestamp']).to_pydatetime()
 
             if "timegap" in report:
-                report["timegap"] = str(report["timegap"])
+                report["time_gap"] = str(report["time_gap"])
 
             new_report = func_to_create(db, report)
             if new_report is not None:

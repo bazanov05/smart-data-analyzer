@@ -58,6 +58,7 @@ class UnverifiedOriginatorResponse(RawDataResponse):
 
 class HighVelocityTransferResponse(RawDataResponse):
     frequency: int
+    time_gap: str
 
 
 class GeographicalInflowResponse(BaseModel):

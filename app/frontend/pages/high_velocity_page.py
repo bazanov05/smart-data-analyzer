@@ -6,20 +6,20 @@ def _find_highest_frequency(aml_data: dict) -> int:
     return max([data["frequency"] for data in aml_data])
 
 
-def _find_most_active_sender(aml_data: dict) -> str:
+def _find_most_common_time_gap(aml_data: dict) -> str:
     frequencies = dict()
     for data in aml_data:
-        if data["sender_id"] not in frequencies:
-            frequencies[data["sender_id"]] = 1
+        if data["time_gap"] not in frequencies:
+            frequencies[data["time_gap"]] = 1
         else:
-            frequencies[data["sender_id"]] += 1
+            frequencies[data["time_gap"]] += 1
     max_frequency = 0
-    most_common_sender = ""
-    for sender, freq in frequencies.items():
+    most_common_gap = "N/A"
+    for gap, freq in frequencies.items():
         if freq > max_frequency:
             max_frequency = freq
-            most_common_sender = sender
-    return most_common_sender
+            most_common_gap = gap
+    return most_common_gap
 
 
 def show_high_velocity_page(api: AMLApiClient):
@@ -38,11 +38,11 @@ def show_high_velocity_page(api: AMLApiClient):
         st.stop()   # to prevent the rest of a code
 
     # divide the page into three equal columns to show breaf sum up
-    total_flags, highest_freq, most_common_sender = st.columns(3)
+    total_flags, highest_freq, most_common_gap = st.columns(3)
 
     total_flags.metric("Total flags", len(data))
     highest_freq.metric("Highest frequency", _find_highest_frequency(data))
-    most_common_sender.metric("Most active sender", _find_most_active_sender(data))
+    most_common_gap.metric("Most common time gap", _find_most_common_time_gap(data))
 
     st.divider()
 
