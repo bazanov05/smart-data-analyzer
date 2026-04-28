@@ -54,7 +54,7 @@ def show_geo_inflow_page(api: AMLApiClient):
 
     st.divider()
 
-    st.error("Chart of countries with high inflow!")
+    st.error("High-risk countries")
 
     df_high_inflow = df.loc[df["risk_level"] == "High-risk"]
 
