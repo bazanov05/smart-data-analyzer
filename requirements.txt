@@ -52,6 +52,7 @@ ormsgpack==1.12.2
 packaging==26.0
 pandas==3.0.1
 pillow==12.2.0
+plotly==6.7.0
 pluggy==1.6.0
 protobuf==7.34.1
 pyarrow==24.0.0
