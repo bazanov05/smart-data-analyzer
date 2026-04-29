@@ -34,6 +34,7 @@ from app.db.repository import (
     get_all_high_velocity_transfers,
     get_all_ai_summaries
 )
+from pydantic import BaseModel
 
 app = FastAPI()
 REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type', 'timestamp'}
@@ -178,9 +179,11 @@ def get_raw_data_report(report_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Report with this id does not exist")
     return report
 
+class AnalyzerRequest(BaseModel):
+    question: str
 
 @app.post("/analyze")
-async def analyze_risk(question: str, db: Session = Depends(get_db)) -> dict:
+async def analyze_risk(request: AnalyzerRequest, db: Session = Depends(get_db)) -> dict:
     """
     Triggers the AI AML Analyst.
     Processes free-text questions about the current data and returns
@@ -189,7 +192,7 @@ async def analyze_risk(question: str, db: Session = Depends(get_db)) -> dict:
     try:
         # this calls  run_agent which handles the logic,
         # the parsing, and the DB saving
-        analysis = await run_in_threadpool(run_agent, db, question)
+        analysis = await run_in_threadpool(run_agent, db, request.question)
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
