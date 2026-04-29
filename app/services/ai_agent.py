@@ -15,7 +15,9 @@ from app.services.tools import (
 from app.db.repository import create_ai_summary_report
 from typing import Literal
 import json
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # defines the shape of the ai answer, makes it more structured
 class AMLAnalysisSchema(BaseModel):
