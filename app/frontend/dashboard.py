@@ -5,6 +5,7 @@ from app.frontend.pages.high_velocity_page import show_high_velocity_page
 from app.frontend.pages.unverified_page import show_unverified_users_page
 from app.frontend.pages.geo_inflow_page import show_geo_inflow_page
 from app.frontend.pages.ai_sum_page import show_ai_sum_page
+from app.frontend.pages.overview_page import show_overview_page
 
 
 st.set_page_config(page_title="AML System", layout="wide")
@@ -80,6 +81,7 @@ with st.sidebar:
 match menu:
     case "Overview":
         st.subheader("System Overview")
+        show_overview_page(api)
 
     case "Structuring attempts":
         st.subheader("Structuring Analysis")
