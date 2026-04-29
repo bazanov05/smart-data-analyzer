@@ -68,7 +68,9 @@ def show_overview_page(api: AMLApiClient):
     st.divider()
 
     st.subheader("Recent Flags")
-    recent = (structuring_data + high_velocity_data)[-5:]
+    all_flags = structuring_data + high_velocity_data
+    # sort by data - "timestamp"
+    recent = sorted(all_flags, key=lambda x: x.get("timestamp", ""), reverse=True)[:5]
     if recent:
         display_cols = ["sender_id", "amount", "country", "type"]
         recent_display = [{k: r[k] for k in display_cols if k in r} for r in recent]
