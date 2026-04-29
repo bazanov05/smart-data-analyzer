@@ -6,6 +6,7 @@ from app.frontend.pages.unverified_page import show_unverified_users_page
 from app.frontend.pages.geo_inflow_page import show_geo_inflow_page
 from app.frontend.pages.ai_sum_page import show_ai_sum_page
 from app.frontend.pages.overview_page import show_overview_page
+from app.frontend.pages.ai_agent_page import show_ai_agent_chat_page
 
 
 st.set_page_config(page_title="AML System", layout="wide")
@@ -61,7 +62,7 @@ with st.sidebar:
 
             # clean the state if user uploads a new CSV file
             # without it old data will be shown because of the logic in pages
-            for key in ["structuring_attempts", "high_velocity", "geo_inflow", "unverified_users", "ai_sum"]:
+            for key in ["structuring_attempts", "high_velocity", "geo_inflow", "unverified_users", "ai_sum", "ai_agent_chat"]:
                 if key in st.session_state:
                     del st.session_state[key]
 
@@ -105,3 +106,4 @@ match menu:
 
     case "AI agent":
         st.subheader("AI AML Analyst")
+        show_ai_agent_chat_page(api)
