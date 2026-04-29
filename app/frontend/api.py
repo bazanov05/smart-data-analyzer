@@ -164,3 +164,18 @@ class AMLApiClient:
             return response.json()
         except requests.exceptions.RequestException:
             return {}
+
+    def trigger_the_agent(self, question: str) -> dict:
+        """
+        Triggers the ai agent.
+        Returns a dictionary with the report details,
+        such as summary, risk_score and reasoning
+        or an empty dict if not found.
+        """
+        try:
+            # send the question as json payload
+            response = self._session.post(f"{self._url}/analyze", json={"question": question})
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException:
+            return {}
