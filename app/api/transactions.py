@@ -35,6 +35,8 @@ from app.db.repository import (
     get_all_ai_summaries
 )
 from pydantic import BaseModel
+import traceback
+
 
 app = FastAPI()
 REQUIRED_COLUMNS = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'country', 'type', 'timestamp'}
@@ -195,6 +197,10 @@ async def analyze_risk(request: AnalyzerRequest, db: Session = Depends(get_db)) 
         analysis = await run_in_threadpool(run_agent, db, request.question)
         return analysis
     except Exception as e:
+        # this block is for detecting the errors related to ai agent
+        print(f"\n--- AI AGENT CRASHED ---")
+        print(f"Error details: {str(e)}\n")
+        traceback.print_exc() # this forces the terminal to print the full red error
         raise HTTPException(status_code=500, detail=str(e))
 
 
