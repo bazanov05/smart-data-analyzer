@@ -1,8 +1,9 @@
 import requests
 from io import BytesIO
+import os
 
-
-BASE_URL = "http://localhost:8000"
+# this pulls the URL from the .env, or defaults to localhost if the .env is missing
+BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 
 class AMLApiClient:
